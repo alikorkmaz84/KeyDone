@@ -1,0 +1,33 @@
+<Window x:Class="KeyDone.GeneratorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Şifre üretici – KeyDone" Width="600" SizeToContent="Height"
+        FontSize="15" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <StackPanel Margin="16">
+        <Label Content="Üretilen _şifre:" Target="{Binding ElementName=OutputBox}" Padding="0,0,0,3" />
+        <TextBox x:Name="OutputBox" IsReadOnly="True" IsReadOnlyCaretVisible="True" FontFamily="Consolas"
+                 AutomationProperties.Name="Üretilen şifre" />
+        <TextBlock x:Name="StrengthText" Style="{StaticResource Hint}" />
+
+        <GroupBox Header="Seçenekler" Margin="0,12,0,0" Padding="8">
+            <StackPanel>
+                <Label Content="_Uzunluk (4 ile 128 arası):" Target="{Binding ElementName=LengthBox}" Padding="0,0,0,3" />
+                <TextBox x:Name="LengthBox" Text="20" Width="90" HorizontalAlignment="Left"
+                         AutomationProperties.Name="Uzunluk" LostFocus="Option_Changed" KeyDown="LengthBox_KeyDown" />
+                <CheckBox x:Name="UpperBox" Content="_Büyük harfler (A-Z)" IsChecked="True" Click="Option_Changed" />
+                <CheckBox x:Name="LowerBox" Content="_Küçük harfler (a-z)" IsChecked="True" Click="Option_Changed" />
+                <CheckBox x:Name="DigitsBox" Content="_Rakamlar (0-9)" IsChecked="True" Click="Option_Changed" />
+                <CheckBox x:Name="SymbolsBox" Content="S_emboller (! @ # gibi)" IsChecked="True" Click="Option_Changed" />
+                <CheckBox x:Name="AmbiguousBox" Content="Birbirine benzeyen karakterleri kullan_ma (I, l, 1, O, 0)" IsChecked="True" Click="Option_Changed" />
+            </StackPanel>
+        </GroupBox>
+
+        <WrapPanel Margin="0,16,0,0">
+            <Button Content="_Yeniden üret" Click="Regenerate_Click" />
+            <Button Content="K_opyala" Click="Copy_Click" />
+            <Button Content="_Harf harf oku" Click="Spell_Click" />
+            <Button x:Name="UseButton" Content="Bu şifreyi kulla_n" IsDefault="True" Click="Use_Click" />
+            <Button Content="Kapa_t" IsCancel="True" />
+        </WrapPanel>
+    </StackPanel>
+</Window>

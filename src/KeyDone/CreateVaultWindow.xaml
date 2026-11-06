@@ -1,0 +1,33 @@
+<Window x:Class="KeyDone.CreateVaultWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Yeni kasa oluştur – KeyDone" Width="600" SizeToContent="Height"
+        FontSize="15" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <StackPanel Margin="16">
+        <TextBlock x:Name="IntroText" TextWrapping="Wrap"
+                   Text="Ana şifre, kasanızın tek anahtarıdır. Hiçbir yere gönderilmez ve unutulursa kurtarılamaz. Kolay hatırlayacağınız ama başkalarının tahmin edemeyeceği, en az 12 karakterlik bir cümle seçmenizi öneririz." />
+
+        <Label Content="Kasa dosyasının _konumu:" Target="{Binding ElementName=PathBox}" />
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="PathBox" IsReadOnly="True" IsReadOnlyCaretVisible="True"
+                     AutomationProperties.Name="Kasa dosyasının konumu" Text="Henüz seçilmedi." />
+            <Button Grid.Column="1" Content="_Gözat..." Margin="8,0,0,0" Click="Browse_Click" />
+        </Grid>
+
+        <Label x:Name="PasswordLabel" Content="_Ana şifre:" />
+        <ContentControl x:Name="PasswordHost" Focusable="False" />
+        <TextBlock x:Name="StrengthText" Style="{StaticResource Hint}" />
+
+        <Label x:Name="RepeatLabel" Content="Ana şifre (_tekrar):" />
+        <ContentControl x:Name="RepeatHost" Focusable="False" />
+
+        <WrapPanel Margin="0,16,0,0">
+            <Button Content="Kasayı _oluştur" IsDefault="True" Click="Create_Click" />
+            <Button Content="Vazgeç" IsCancel="True" />
+        </WrapPanel>
+    </StackPanel>
+</Window>

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KeyDone.Core/KeyDone.Core.csproj" />
+    <Project Path="src/KeyDone/KeyDone.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KeyDone.Core.Tests/KeyDone.Core.Tests.csproj" />
+  </Folder>
+</Solution>

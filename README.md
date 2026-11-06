@@ -1,61 +1,71 @@
 # KeyDone
 
-Ekran okuyucu kullanıcıları için baştan tasarlanmış, tamamen erişilebilir bir şifre ve önemli bilgi kasası.
+Ekran okuyucu kullanıcıları için baştan tasarlanmış, tamamen erişilebilir bir Windows şifre ve önemli bilgi kasası.
 
-- Kasa, standart **KeePass (KDBX 4)** dosyasıdır. Aynı dosya KeePassXC, KeePassDX (Android) ve Strongbox (iPhone) ile de açılabilir.
-- Her şey cihazda kalır; uygulama internete hiçbir veri göndermez.
+- Gerçek bir Windows uygulamasıdır (WPF). Menü çubuğu, listeler, düğmeler ve iletişim kutuları standart Windows denetimleridir; NVDA, JAWS ve Windows Ekran Okuyucusu bunları doğrudan tanır.
+- Kasa, standart **KeePass (KDBX 4)** dosyasıdır. Aynı dosya telefonda KeePassDX (Android) ya da Strongbox (iPhone) ile açılabilir.
+- Her şey bilgisayarda kalır; uygulama internete hiçbir veri göndermez.
 - Şifreleme: Argon2id (64 MiB) ile anahtar türetme, AES-256 ile kasa şifreleme.
+
+## Çalıştırma
+
+`KeyDone.bat` dosyasına çift tıklayın. İlk açılış bir iki dakika sürebilir, sonrakiler birkaç saniye sürer.
+Gereken tek şey [.NET 10 SDK](https://dotnet.microsoft.com/download)'dır.
 
 ## Saklanabilen bilgiler
 
 Giriş bilgisi, banka kartı, banka hesabı, kimlik belgesi, Wi-Fi ağı, yazılım lisansı, kripto cüzdanı ve güvenli not.
 Başka KeePass uygulamalarıyla eklenmiş özel alanlar da gösterilir ve korunur.
 
-## Erişilebilirlik
+## Kullanım
 
-- Fare gerekmez; tüm işlemler klavyeyle yapılır (F1 kısayol listesini açar).
-- Her işlem ekran okuyucuya sesli bildirilir (kopyalandı, kaydedildi, pano temizlendi...).
-- **Harf harf okuma:** Şifreler "büyük A, küçük l, rakam 1, ünlem" biçiminde, istenirse "A, Adana" gibi kod kelimeleriyle okunur.
-- Şifre gücü renkle değil sözle bildirilir.
-- Kendiliğinden kilitlenmeden 30 saniye önce uyarı verilir; süre ayarlanabilir.
-- Yüksek karşıtlık modu, karanlık tema ve büyük yazı desteklenir.
+Ana pencerede solda **kayıt listesi**, sağda seçili kaydın **alanları** vardır.
+
+- Kayıt listesinde oklarla gezin. **Enter** kaydın alanlarına geçer, alanlarda **Escape** listeye döner.
+- Alan listesinde **Enter** seçili alanı kopyalar. Gizli alanlar "Şifre: gizli" diye okunur; **Göster** düğmesi değeri gösterir ve okur.
+- **Harf harf oku** şifreyi "küçük a, büyük B, rakam 1, ünlem" biçiminde bir listede gösterir; oklarla karakter karakter gezilir. Ayarlardan "A, Adana" gibi kod kelimeleri de açılabilir.
+- Her işlem ekran okuyucuya sesli bildirilir ("Şifre kopyalandı, 30 saniye sonra panodan silinecek" gibi).
+
+### Klavye kısayolları (F1 bu listeyi açar)
+
+| Tuş | İşlem |
+| --- | --- |
+| Ctrl+F | Arama kutusuna git |
+| Ctrl+N | Yeni kayıt |
+| Ctrl+E | Seçili kaydı düzenle |
+| Delete | Seçili kaydı sil (onay istenir) |
+| Ctrl+C | Şifreyi ya da seçili alanı kopyala |
+| Ctrl+B | Kullanıcı adını kopyala |
+| Ctrl+H | Şifreyi ya da seçili alanı harf harf oku |
+| Ctrl+U | Web sitesini aç |
+| Ctrl+G | Şifre üretici |
+| Ctrl+L | Kasayı kilitle |
+| Ctrl+O | Başka bir kasa aç |
+| Ctrl+Shift+N | Yeni kasa oluştur |
+| Ctrl+S | Kayıt penceresinde kaydet |
 
 ## Güvenlik
 
-- Gizli alanlar (şifre, PIN, kart numarası) arayüze yalnızca kullanıcı "Göster", "Harf harf oku" ya da "Düzenle" dediğinde gönderilir.
-- Kopyalama Rust tarafında yapılır; pano ayarlanan süre sonunda temizlenir. Windows'ta kopyalanan bilgi pano geçmişine ve buluta düşmez.
+- Kasa hareketsiz kalınca (varsayılan 5 dakika) ve Windows kilitlenince kendiliğinden kilitlenir; 30 saniye önce sesli uyarı verilir.
+- Kopyalanan bilgi ayarlanan süre sonunda panodan silinir ve Windows pano geçmişine ya da buluta gönderilmez.
 - Kasa önce geçici dosyaya yazılır, sonra asıl dosyanın yerine konur; yazma yarıda kesilirse eski kasa bozulmaz.
 - Kayıt düzenlenince eski hali KeePass'teki gibi kaydın geçmişine eklenir.
 
 ## Geliştirme
 
-Gerekenler: Node.js, Rust, Windows'ta Visual Studio C++ Derleme Araçları ([Tauri ön koşulları](https://tauri.app/start/prerequisites/)).
-
 ```bash
-npm install
-npm run tauri dev
+dotnet build -c Release
+dotnet test
 ```
 
-Rust testleri:
+- `src/KeyDone.Core`: Kasa (KeePassLib), kayıt türleri, şifre üretici, harf harf okuma.
+- `src/KeyDone`: WPF arayüzü.
+- `tests/KeyDone.Core.Tests`: Testler.
 
-```bash
-cd src-tauri
-cargo test
-```
-
-`src/index.html` dosyası Tauri dışında, sıradan bir tarayıcıda da açılabilir. Bu durumda arayüzü denemek için bellekte çalışan sahte bir arka uç kullanılır (ana şifre: `deneme`); hiçbir şey kaydedilmez.
-
-### Android
-
-Android Studio, Android SDK ve NDK kurulduktan sonra:
-
-```bash
-npm run tauri android init
-npm run tauri android dev
-```
+KDBX dosyaları, KeePass'in kendi kütüphanesi KeePassLib ile okunup yazılır (KeePassLib.Standard paketi). KeePassLib GPL-2.0 lisanslıdır; bu yüzden KeyDone dağıtılırsa kaynak kodu da GPL ile açık olmalıdır.
 
 ## Yol haritası
 
 1. **Temel sürüm (şu an):** Kasa oluşturma ve açma, kayıt türleri, arama, kopyalama, sesli bildirimler, harf harf okuma, şifre üretici, otomatik kilit.
-2. **İkinci aşama:** Dosya ekleri, Türkçe kelimelerle parola cümlesi üretme, iki adımlı doğrulama (TOTP) kodları, zayıf ve tekrar kullanılan şifre denetimi, içe aktarma (Bitwarden, Chrome CSV), Android'de dosya seçme.
-3. **Üçüncü aşama:** Başka uygulamalara otomatik yazma, Windows Hello ile açma, isteğe bağlı sesli işaretler, Braille yazıcı için acil durum kiti.
+2. **İkinci aşama:** Dosya ekleri, Türkçe kelimelerle parola cümlesi, iki adımlı doğrulama (TOTP) kodları, zayıf ve tekrar kullanılan şifre denetimi, içe aktarma (Bitwarden, Chrome CSV).
+3. **Üçüncü aşama:** Başka uygulamalara otomatik yazma, Windows Hello ile açma, isteğe bağlı sesli işaretler, Braille yazıcı için acil durum kiti, Android uygulaması.
