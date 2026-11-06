@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KeyDone</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <!-- Ekran okuyucu duyuruları -->
+  <div id="live-polite" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="live-assertive" class="sr-only" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- 1. Kasa kilit ekranı -->
+  <main id="screen-unlock" class="screen" hidden>
+    <h1 tabindex="-1">KeyDone</h1>
+    <p id="unlock-file-info"></p>
+    <form id="unlock-form" novalidate>
+      <div class="form-field">
+        <label for="unlock-password">Ana şifre</label>
+        <input id="unlock-password" type="password" autocomplete="current-password" aria-describedby="unlock-file-info unlock-error">
+        <p id="unlock-error" class="error" hidden></p>
+      </div>
+      <div class="checkbox-field">
+        <input id="unlock-show" type="checkbox">
+        <label for="unlock-show">Ana şifreyi göster</label>
+      </div>
+      <button type="submit" class="primary" id="unlock-submit">Kasayı aç</button>
+    </form>
+    <div class="button-row">
+      <button type="button" id="btn-open-other" class="desktop-only">Başka bir kasa dosyası aç</button>
+      <button type="button" id="btn-go-create">Yeni kasa oluştur</button>
+    </div>
+  </main>
+
+  <!-- 2. Yeni kasa oluşturma -->
+  <main id="screen-create" class="screen" hidden>
+    <h1 tabindex="-1">Yeni kasa oluştur</h1>
+    <p>Ana şifre, kasanızın tek anahtarıdır. Hiçbir yere gönderilmez ve unutulursa kurtarılamaz. Kolay hatırlayacağınız ama başkalarının tahmin edemeyeceği, en az 12 karakterlik bir cümle seçmenizi öneririz.</p>
+    <form id="create-form" novalidate>
+      <div class="form-field desktop-only">
+        <span class="label" id="create-path-label">Kasa dosyasının konumu</span>
+        <p id="create-path">Henüz seçilmedi.</p>
+        <button type="button" id="btn-create-choose" aria-describedby="create-path-label create-path">Konum seç</button>
+        <p id="create-path-error" class="error" hidden></p>
+      </div>
+      <div class="form-field">
+        <label for="create-password">Ana şifre</label>
+        <input id="create-password" type="password" autocomplete="new-password" aria-describedby="create-strength create-password-error">
+        <p id="create-strength" class="hint"></p>
+        <p id="create-password-error" class="error" hidden></p>
+      </div>
+      <div class="form-field">
+        <label for="create-password2">Ana şifre (tekrar)</label>
+        <input id="create-password2" type="password" autocomplete="new-password" aria-describedby="create-password2-error">
+        <p id="create-password2-error" class="error" hidden></p>
+      </div>
+      <div class="checkbox-field">
+        <input id="create-show" type="checkbox">
+        <label for="create-show">Şifreleri göster</label>
+      </div>
+      <div class="button-row">
+        <button type="submit" class="primary">Kasayı oluştur</button>
+        <button type="button" id="btn-create-cancel">Vazgeç</button>
+      </div>
+    </form>
+  </main>
+
+  <!-- 3. Kasa (liste ve ayrıntı) -->
+  <div id="screen-vault" class="screen" hidden>
+    <header class="toolbar">
+      <h1 tabindex="-1" id="vault-title">Kasa</h1>
+      <nav aria-label="Kasa işlemleri">
+        <button type="button" id="btn-new" aria-keyshortcuts="Control+N">Yeni kayıt</button>
+        <button type="button" id="btn-generator" aria-keyshortcuts="Control+G">Şifre üretici</button>
+        <button type="button" id="btn-settings">Ayarlar</button>
+        <button type="button" id="btn-help" aria-keyshortcuts="F1">Kısayollar</button>
+        <button type="button" id="btn-lock" aria-keyshortcuts="Control+L">Kilitle</button>
+      </nav>
+    </header>
+    <main class="vault-body">
+      <section id="list-pane" aria-labelledby="list-heading">
+        <h2 id="list-heading">Kayıtlar</h2>
+        <div class="search-row">
+          <div class="form-field">
+            <label for="search">Kayıtlarda ara</label>
+            <input id="search" type="search" autocomplete="off" aria-keyshortcuts="Control+F" aria-describedby="search-hint">
+            <p id="search-hint" class="hint">Enter ilk sonucu açar, aşağı ok listeye geçer.</p>
+          </div>
+          <div class="form-field">
+            <label for="filter-kind">Tür</label>
+            <select id="filter-kind"></select>
+          </div>
+        </div>
+        <p id="list-count"></p>
+        <ul id="entry-list" class="entry-list" aria-labelledby="list-heading"></ul>
+      </section>
+      <section id="detail-pane" aria-labelledby="detail-title" hidden>
+        <h2 id="detail-title" tabindex="-1"></h2>
+        <p id="detail-kind" class="hint"></p>
+        <div id="detail-fields"></div>
+        <div class="button-row">
+          <button type="button" id="btn-edit" aria-keyshortcuts="Control+E">Düzenle</button>
+          <button type="button" id="btn-delete" class="danger" aria-keyshortcuts="Delete">Sil</button>
+          <button type="button" id="btn-back" aria-keyshortcuts="Escape">Listeye dön</button>
+        </div>
+        <section id="spell-region" class="spell-region" aria-labelledby="spell-heading" hidden>
+          <h3 id="spell-heading" tabindex="-1"></h3>
+          <ol id="spell-list"></ol>
+          <button type="button" id="btn-spell-close">Harf harf okumayı kapat</button>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <!-- 4. Kayıt ekleme / düzenleme -->
+  <main id="screen-edit" class="screen" hidden>
+    <h1 tabindex="-1" id="edit-title">Yeni kayıt</h1>
+    <form id="edit-form" novalidate>
+      <div class="form-field" id="edit-kind-field">
+        <label for="edit-kind">Kayıt türü</label>
+        <select id="edit-kind"></select>
+      </div>
+      <div id="edit-fields"></div>
+      <div class="button-row">
+        <button type="submit" class="primary" aria-keyshortcuts="Control+S">Kaydet</button>
+        <button type="button" id="btn-edit-cancel" aria-keyshortcuts="Escape">Vazgeç</button>
+      </div>
+    </form>
+  </main>
+
+  <!-- Şifre üretici -->
+  <dialog id="dlg-generator" aria-labelledby="gen-heading">
+    <h2 id="gen-heading">Şifre üretici</h2>
+    <div class="form-field">
+      <label for="gen-output">Üretilen şifre</label>
+      <input id="gen-output" type="text" readonly spellcheck="false" autocomplete="off" aria-describedby="gen-strength">
+      <p id="gen-strength" class="hint"></p>
+    </div>
+    <fieldset>
+      <legend>Seçenekler</legend>
+      <div class="form-field">
+        <label for="gen-length">Uzunluk (4 ile 128 arası)</label>
+        <input id="gen-length" type="number" min="4" max="128" value="20" inputmode="numeric">
+      </div>
+      <div class="checkbox-field"><input id="gen-upper" type="checkbox" checked><label for="gen-upper">Büyük harfler (A-Z)</label></div>
+      <div class="checkbox-field"><input id="gen-lower" type="checkbox" checked><label for="gen-lower">Küçük harfler (a-z)</label></div>
+      <div class="checkbox-field"><input id="gen-digits" type="checkbox" checked><label for="gen-digits">Rakamlar (0-9)</label></div>
+      <div class="checkbox-field"><input id="gen-symbols" type="checkbox" checked><label for="gen-symbols">Semboller (! @ # gibi)</label></div>
+      <div class="checkbox-field"><input id="gen-ambiguous" type="checkbox" checked><label for="gen-ambiguous">Birbirine benzeyen karakterleri kullanma (I, l, 1, O, 0)</label></div>
+    </fieldset>
+    <div class="button-row">
+      <button type="button" id="gen-regenerate">Yeniden üret</button>
+      <button type="button" id="gen-copy">Kopyala</button>
+      <button type="button" id="gen-spell">Harf harf oku</button>
+      <button type="button" id="gen-use" class="primary" hidden>Bu şifreyi kullan</button>
+      <button type="button" id="gen-close">Kapat</button>
+    </div>
+    <section id="gen-spell-region" class="spell-region" aria-labelledby="gen-spell-heading" hidden>
+      <h3 id="gen-spell-heading" tabindex="-1">Harf harf</h3>
+      <ol id="gen-spell-list"></ol>
+    </section>
+  </dialog>
+
+  <!-- Onay -->
+  <dialog id="dlg-confirm" aria-labelledby="confirm-heading" aria-describedby="confirm-text">
+    <h2 id="confirm-heading"></h2>
+    <p id="confirm-text"></p>
+    <div class="button-row">
+      <button type="button" id="confirm-yes" class="danger"></button>
+      <button type="button" id="confirm-no">Vazgeç</button>
+    </div>
+  </dialog>
+
+  <!-- Kısayollar -->
+  <dialog id="dlg-help" aria-labelledby="help-heading">
+    <h2 id="help-heading">Klavye kısayolları</h2>
+    <ul class="shortcut-list">
+      <li><kbd>Ctrl+F</kbd>: Arama kutusuna git</li>
+      <li><kbd>Ctrl+N</kbd>: Yeni kayıt</li>
+      <li><kbd>Ctrl+E</kbd>: Açık kaydı düzenle</li>
+      <li><kbd>Ctrl+S</kbd>: Kaydı kaydet (düzenlerken)</li>
+      <li><kbd>Ctrl+C</kbd>: Açık kaydın şifresini kopyala (metin seçili değilken)</li>
+      <li><kbd>Ctrl+B</kbd>: Açık kaydın kullanıcı adını kopyala</li>
+      <li><kbd>Ctrl+U</kbd>: Açık kaydın web sitesini aç</li>
+      <li><kbd>Ctrl+G</kbd>: Şifre üretici</li>
+      <li><kbd>Ctrl+L</kbd>: Kasayı kilitle</li>
+      <li><kbd>Delete</kbd>: Açık kaydı sil (onay istenir)</li>
+      <li><kbd>Escape</kbd>: Geri dön veya pencereyi kapat</li>
+      <li><kbd>Aşağı ok, Yukarı ok, Home, End</kbd>: Kayıt listesinde gezin</li>
+      <li><kbd>F1</kbd>: Bu listeyi aç</li>
+    </ul>
+    <button type="button" id="help-close">Kapat</button>
+  </dialog>
+
+  <!-- Ayarlar -->
+  <dialog id="dlg-settings" aria-labelledby="settings-heading">
+    <h2 id="settings-heading">Ayarlar</h2>
+    <div class="form-field">
+      <label for="set-autolock">Hareketsiz kalınca kasayı kilitle</label>
+      <select id="set-autolock">
+        <option value="1">1 dakika sonra</option>
+        <option value="2">2 dakika sonra</option>
+        <option value="5">5 dakika sonra</option>
+        <option value="10">10 dakika sonra</option>
+        <option value="15">15 dakika sonra</option>
+        <option value="30">30 dakika sonra</option>
+        <option value="0">Hiçbir zaman</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label for="set-clipboard">Kopyalanan bilgiyi panodan sil</label>
+      <select id="set-clipboard">
+        <option value="15">15 saniye sonra</option>
+        <option value="30">30 saniye sonra</option>
+        <option value="60">60 saniye sonra</option>
+        <option value="90">90 saniye sonra</option>
+      </select>
+    </div>
+    <div class="checkbox-field">
+      <input id="set-phonetic" type="checkbox">
+      <label for="set-phonetic">Harf harf okurken kod kelimelerini de söyle (A, Adana gibi)</label>
+    </div>
+    <button type="button" id="settings-close">Kapat</button>
+  </dialog>
+</body>
+</html>
