@@ -44,6 +44,11 @@ public partial class SettingsWindow : Window
         Select(ClipboardBox, settings.ClipboardSeconds, 30);
         Select(VolumeBox, settings.SoundVolume, 60);
         PhoneticBox.IsChecked = settings.Phonetic;
+        _pinSalt = settings.PinSalt;
+        _pinHash = settings.PinHash;
+        QuickUnlockBox.IsChecked = settings.QuickUnlockEnabled && _pinHash is not null;
+        AutomationProperties_SetHelp(QuickUnlockBox, QuickUnlockHint.Text);
+        UpdatePinButton();
         SoundsBox.IsChecked = settings.SoundsEnabled;
         SoundHint.Text = "Bir sesi değiştirmek için ses klasörüne şu adlardan biriyle WAV dosyası koyun: "
                          + string.Join(", ", Sounds.All.Select(s => s.FileName + ".wav")) + ".";
@@ -61,6 +66,37 @@ public partial class SettingsWindow : Window
 
     static void AutomationProperties_SetHelp(UIElement element, string text) =>
         System.Windows.Automation.AutomationProperties.SetHelpText(element, text);
+
+    // ---------------- PIN ile hızlı açma ----------------
+
+    string? _pinSalt;
+    string? _pinHash;
+
+    void UpdatePinButton() => PinButton.Content = _pinHash is null ? "PIN _belirle..." : "PIN'i _değiştir...";
+
+    bool AskPin()
+    {
+        var dialog = new PinWindow { Owner = this };
+        if (dialog.ShowDialog() != true) return false;
+        (_pinSalt, _pinHash) = (dialog.Salt, dialog.Hash);
+        UpdatePinButton();
+        Announcer.Say("PIN belirlendi. Tamam'a basınca kaydedilir.");
+        return true;
+    }
+
+    void QuickUnlockBox_Checked(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded || _pinHash is not null) return;
+        // PIN'siz hızlı açma olmaz: önce PIN istenir, vazgeçilirse seçenek kapanır.
+        if (!AskPin()) QuickUnlockBox.IsChecked = false;
+        QuickUnlockBox.Focus();
+    }
+
+    void PinButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (AskPin()) QuickUnlockBox.IsChecked = true;
+        PinButton.Focus();
+    }
 
     static void Select(ComboBox box, int value, int fallback)
     {
@@ -200,6 +236,9 @@ public partial class SettingsWindow : Window
         _settings.AutoLockMinutes = Selected(AutoLockBox);
         _settings.ClipboardSeconds = Selected(ClipboardBox);
         _settings.Phonetic = PhoneticBox.IsChecked == true;
+        _settings.QuickUnlockEnabled = QuickUnlockBox.IsChecked == true && _pinHash is not null;
+        _settings.PinSalt = _pinSalt;
+        _settings.PinHash = _pinHash;
         _settings.SoundsEnabled = SoundsBox.IsChecked == true;
         _settings.SoundVolume = Selected(VolumeBox);
         DialogResult = true;

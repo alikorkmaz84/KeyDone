@@ -1,13 +1,13 @@
 ﻿<Window x:Class="KeyDone.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="KeyDone" Width="1000" Height="700" MinWidth="560" MinHeight="420"
+        Title="KeyDone" Width="1150" Height="720" MinWidth="720" MinHeight="460"
         FontSize="15" WindowStartupLocation="CenterScreen">
     <!--
         Klavye düzeni:
         - Menü çubuğuna yalnızca Alt ya da F10 ile ulaşılır; Tab ile menüye gidilmez.
         - Tab yalnızca dört yerde durur: arama kutusu, kategoriler, kayıt listesi, alan listesi.
-        - Kategorilerde sağ ve sol ok kategori değiştirir; Ctrl+Tab her yerden sonraki kategoriye geçer.
+        - Kategoriler solda alt alta durur; ok tuşları kategori değiştirir; Ctrl+Tab her yerden sonraki kategoriye geçer.
         - F6 kayıt listesi ile alan listesi arasında geçer.
     -->
     <DockPanel KeyboardNavigation.DirectionalNavigation="None">
@@ -22,6 +22,8 @@
 
         <Grid Margin="12">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="2*" />
@@ -32,19 +34,25 @@
             </Grid.RowDefinitions>
 
             <!-- Arama -->
-            <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
+            <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Margin="0,0,0,8">
                 <Label Content="A_ra:" Target="{Binding ElementName=SearchBox}" Padding="0,0,0,3" />
                 <TextBox x:Name="SearchBox" AutomationProperties.Name="Ara"
                          AutomationProperties.HelpText="Yazdıkça kayıt listesi süzülür. Aşağı ok listeye geçer."
                          TextChanged="SearchBox_TextChanged" PreviewKeyDown="SearchBox_PreviewKeyDown" />
             </StackPanel>
 
-            <!-- Kategoriler (yalnızca sekme şeridi) ve kayıtlar -->
+            <!-- Kategoriler: solda, alt alta; hepsi her zaman görünür. Sekmelerin içeriği yoktur, yalnızca listeyi süzer. -->
             <DockPanel Grid.Row="1" Grid.Column="0">
-                <TabControl x:Name="CategoryTabs" DockPanel.Dock="Top" Margin="0,0,0,8" Padding="0" BorderThickness="0,1,0,0"
+                <TextBlock DockPanel.Dock="Top" Text="Kategoriler:" FontWeight="SemiBold" Margin="0,0,0,3" />
+                <TabControl x:Name="CategoryTabs" TabStripPlacement="Left" Padding="0" BorderThickness="0"
+                            VerticalAlignment="Top" MinWidth="190"
                             AutomationProperties.Name="Kategoriler"
-                            AutomationProperties.HelpText="Sağ ve sol ok kategori değiştirir. Ctrl+Tab her yerden sonraki kategoriye geçer."
-                            SelectionChanged="CategoryTabs_SelectionChanged" />
+                            AutomationProperties.HelpText="Ok tuşları kategori değiştirir. Ctrl+Tab her yerden sonraki kategoriye geçer."
+                            SelectionChanged="CategoryTabs_SelectionChanged" PreviewKeyDown="CategoryTabs_PreviewKeyDown" />
+            </DockPanel>
+
+            <!-- Kayıtlar -->
+            <DockPanel Grid.Row="1" Grid.Column="2">
                 <Label DockPanel.Dock="Top" Content="Kayıt _listesi:" Target="{Binding ElementName=EntryList}" Padding="0,0,0,3" />
                 <ListView x:Name="EntryList" AutomationProperties.Name="Kayıtlar"
                           AutomationProperties.HelpText="Enter alanlara geçer. Uygulama tuşu işlemler menüsünü açar."
@@ -62,7 +70,7 @@
             </DockPanel>
 
             <!-- Seçili kaydın alanları -->
-            <DockPanel Grid.Row="1" Grid.Column="2">
+            <DockPanel Grid.Row="1" Grid.Column="4">
                 <Label x:Name="FieldsLabel" DockPanel.Dock="Top" Content="Ala_nlar:" Target="{Binding ElementName=FieldList}" Padding="0,0,0,3" />
                 <ListView x:Name="FieldList" AutomationProperties.Name="Alanlar"
                           AutomationProperties.HelpText="Enter seçili alanı kopyalar. Escape kayıt listesine döner."

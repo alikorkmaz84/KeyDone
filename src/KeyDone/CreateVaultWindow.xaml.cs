@@ -17,9 +17,12 @@ public partial class CreateVaultWindow : Window
 
     public Vault? Vault { get; private set; }
 
-    public CreateVaultWindow()
+    readonly QuickUnlock _quick;
+
+    public CreateVaultWindow(QuickUnlock quick)
     {
         InitializeComponent();
+        _quick = quick;
         _password = new SecretInput("Ana şifre", PasswordLabel);
         _repeat = new SecretInput("Ana şifre (tekrar)", RepeatLabel);
         var show = new CheckBox { Content = "Şifreleri _göster" };
@@ -92,6 +95,7 @@ public partial class CreateVaultWindow : Window
         {
             string path = _path;
             Vault = await Task.Run(() => Vault.Create(path, password));
+            _quick.Remember(path, password);
             _password.Clear();
             _repeat.Clear();
             DialogResult = true;

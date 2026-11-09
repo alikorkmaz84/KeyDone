@@ -57,6 +57,7 @@ public partial class MainWindow : Window
 
     readonly AppSettings _settings = AppSettings.Load();
     readonly ShortcutMap _shortcuts;
+    readonly QuickUnlock _quick = new();
     readonly Dictionary<string, Action> _actions;
     readonly ObservableCollection<EntryItem> _entries = [];
     readonly ObservableCollection<FieldItem> _fields = [];
@@ -132,6 +133,7 @@ public partial class MainWindow : Window
         {
             SystemEvents.SessionSwitch -= OnSessionSwitch;
             SecureClipboard.ClearIfOurs();
+            _quick.Forget();
             _vault?.Dispose();
         };
         UpdateState();
@@ -268,7 +270,7 @@ public partial class MainWindow : Window
         {
             while (true)
             {
-                var dialog = new UnlockWindow(path) { Owner = this };
+                var dialog = new UnlockWindow(path, _settings, _quick) { Owner = this };
                 dialog.ShowDialog();
                 switch (dialog.Choice)
                 {
@@ -311,7 +313,7 @@ public partial class MainWindow : Window
 
     bool CreateVault()
     {
-        var dialog = new CreateVaultWindow { Owner = this };
+        var dialog = new CreateVaultWindow(_quick) { Owner = this };
         if (dialog.ShowDialog() != true || dialog.Vault is null) return false;
         SetVault(dialog.Vault, "Kasa oluşturuldu.");
         return true;
@@ -360,6 +362,8 @@ public partial class MainWindow : Window
     {
         if (_vault is null) return;
         CloseVault();
+        // PIN ile açma kapalıysa bellekte tutulan ana şifre de silinir.
+        if (!_settings.QuickUnlockEnabled || _settings.PinHash is null) _quick.Forget();
         Sounds.Play(SoundEvent.Locked);
         Announcer.Say(message);
         Dispatcher.BeginInvoke(() => ShowUnlockFlow(_settings.LastVaultPath), DispatcherPriority.ApplicationIdle);
@@ -447,10 +451,40 @@ public partial class MainWindow : Window
         int count = CategoryTabs.Items.Count;
         bool listHadFocus = EntryList.IsKeyboardFocusWithin;
         CategoryTabs.SelectedIndex = ((CategoryTabs.SelectedIndex + step) % count + count) % count;
-        // Liste yenilenince odak kaybolmasın; kategori sekmesindeyse odak yeni sekmeye geçer.
+        // Liste yenilenince odak kaybolmasın. Kategorilerdeyken odak yeni sekmeye geçer ve
+        // ekran okuyucu sekmenin adını (kayıt sayısıyla) zaten okur; ayrıca duyuru yapılmaz.
+        if (CategoryTabs.IsKeyboardFocusWithin)
+        {
+            ((TabItem)CategoryTabs.SelectedItem).Focus();
+            return;
+        }
         if (listHadFocus && _entries.Count > 0) Ui.FocusSelected(EntryList);
-        else if (CategoryTabs.IsKeyboardFocusWithin) ((TabItem)CategoryTabs.SelectedItem).Focus();
         Announcer.Say($"{((TabItem)CategoryTabs.SelectedItem).Header}. {CountText()}", queue: listHadFocus);
+    }
+
+    /// <summary>Kategorilerde dört ok tuşu da çalışır; Home ve End ilk ve son kategoriye gider.</summary>
+    void CategoryTabs_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (Keyboard.Modifiers != ModifierKeys.None) return;
+        int count = CategoryTabs.Items.Count;
+        switch (e.Key)
+        {
+            case Key.Up or Key.Left:
+                MoveCategory(-1);
+                break;
+            case Key.Down or Key.Right:
+                MoveCategory(+1);
+                break;
+            case Key.Home:
+                MoveCategory(-CategoryTabs.SelectedIndex);
+                break;
+            case Key.End:
+                MoveCategory(count - 1 - CategoryTabs.SelectedIndex);
+                break;
+            default:
+                return;
+        }
+        e.Handled = true;
     }
 
     void CategoryTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -18,6 +18,11 @@
                     <Label Content="Kopyalanan bilgiyi _panodan sil:" Target="{Binding ElementName=ClipboardBox}" />
                     <ComboBox x:Name="ClipboardBox" AutomationProperties.Name="Kopyalanan bilgiyi panodan sil" />
                     <CheckBox x:Name="PhoneticBox" Content="Harf harf okurken _il adlarını da söyle (A, Adana gibi)" Margin="0,14,0,0" />
+                    <CheckBox x:Name="QuickUnlockBox" Content="Kasa kilitlenince _4 haneli PIN ile açılabilsin (program kapanana kadar)" Margin="0,14,0,0"
+                              Checked="QuickUnlockBox_Checked" />
+                    <TextBlock x:Name="QuickUnlockHint" Style="{StaticResource Hint}"
+                               Text="Program her açılışta ilk kez ana şifreyle açılır. Sonra kasa kilitlenirse PIN yeterli olur. PIN 3 kez yanlış girilirse ana şifre istenir." />
+                    <Button x:Name="PinButton" Content="PIN _belirle..." HorizontalAlignment="Left" Margin="0,8,0,0" Click="PinButton_Click" />
                 </StackPanel>
             </TabItem>
 

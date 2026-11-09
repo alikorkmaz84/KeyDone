@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using KeyDone.Core;
@@ -11,14 +12,20 @@ public enum UnlockChoice { Cancelled, Opened, OpenOther, CreateNew }
 public partial class UnlockWindow : Window
 {
     readonly string? _path;
+    readonly AppSettings _settings;
+    readonly QuickUnlock _quick;
     readonly SecretInput _password;
+    bool _pinMode;
+    bool _busy;
 
     public UnlockChoice Choice { get; private set; } = UnlockChoice.Cancelled;
     public Vault? Vault { get; private set; }
 
-    public UnlockWindow(string? path)
+    public UnlockWindow(string? path, AppSettings settings, QuickUnlock quick)
     {
         InitializeComponent();
+        _settings = settings;
+        _quick = quick;
         _password = new SecretInput("Ana şifre", PasswordLabel);
         PasswordHost.Content = _password.BuildPanel(new CheckBox { Content = "Şifreyi _göster" });
 
@@ -26,8 +33,12 @@ public partial class UnlockWindow : Window
         _path = exists ? path : null;
         if (exists)
         {
-            InfoText.Text = $"Kasa dosyası: {path}";
-            AutomationPropertiesHelp($"Kasa dosyası: {path}");
+            string help = $"Kasa dosyası: {path}";
+            AutomationProperties.SetHelpText(_password.Hidden, help);
+            AutomationProperties.SetHelpText(_password.Shown, help);
+            AutomationProperties.SetHelpText(PinBox, help);
+            if (quick.IsAvailable(settings, path)) SetPinMode(true);
+            else InfoText.Text = help;
         }
         else
         {
@@ -42,54 +53,124 @@ public partial class UnlockWindow : Window
 
         Loaded += (_, _) =>
         {
-            if (_path is not null) _password.Focus();
-            else OtherButton.Focus();
-            if (_path is null) Announcer.Say(InfoText.Text);
+            if (_path is null)
+            {
+                OtherButton.Focus();
+                Announcer.Say(InfoText.Text);
+            }
+            else if (_pinMode) PinBox.Focus();
+            else _password.Focus();
         };
     }
 
-    void AutomationPropertiesHelp(string text)
+    void SetPinMode(bool pin)
     {
-        System.Windows.Automation.AutomationProperties.SetHelpText(_password.Hidden, text);
-        System.Windows.Automation.AutomationProperties.SetHelpText(_password.Shown, text);
+        _pinMode = pin;
+        PinPanel.Visibility = pin ? Visibility.Visible : Visibility.Collapsed;
+        PasswordPanel.Visibility = pin ? Visibility.Collapsed : Visibility.Visible;
+        ModeButton.Visibility = pin ? Visibility.Visible : Visibility.Collapsed;
+        InfoText.Text = pin
+            ? $"Kasa kilitli. PIN'inizi yazın. Kasa dosyası: {_path}"
+            : $"Kasa dosyası: {_path}";
+        PinBox.Clear();
+        if (!IsLoaded) return;
+        if (pin) PinBox.Focus(); else _password.Focus();
+    }
+
+    void Mode_Click(object sender, RoutedEventArgs e) => SetPinMode(false);
+
+    // Dördüncü rakam yazılınca beklemeden denenir.
+    void PinBox_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (_pinMode && PinBox.Password.Length == PinCode.Length) Open_Click(sender, e);
     }
 
     async void Open_Click(object sender, RoutedEventArgs e)
     {
-        if (_path is null) return;
-        string password = _password.Text;
-        if (password.Length == 0)
-        {
-            Ui.Error(this, "Ana şifreyi yazın.");
-            _password.Focus();
-            return;
-        }
-
+        if (_path is null || _busy) return;
+        string path = _path;
+        _busy = true;
         IsEnabled = false;
         Mouse.OverrideCursor = Cursors.Wait;
-        Announcer.Say("Kasa açılıyor, lütfen bekleyin.");
         try
         {
-            string path = _path;
-            Vault = await Task.Run(() => Vault.Open(path, password));
-            _password.Clear();
-            Choice = UnlockChoice.Opened;
-            Close();
-        }
-        catch (VaultException ex)
-        {
-            Mouse.OverrideCursor = null;
-            IsEnabled = true;
-            Ui.Error(this, ex.Message);
-            _password.Focus();
-            if (_password.Active is PasswordBox box) box.SelectAll();
-            else if (_password.Active is TextBox text) text.SelectAll();
+            if (_pinMode) await OpenWithPin(path);
+            else await OpenWithPassword(path);
         }
         finally
         {
             Mouse.OverrideCursor = null;
             IsEnabled = true;
+            _busy = false;
         }
+        if (Choice == UnlockChoice.Opened) Close();
+        else if (_pinMode) PinBox.Focus();
+        else
+        {
+            _password.Focus();
+            if (_password.Active is PasswordBox box) box.SelectAll();
+            else if (_password.Active is TextBox text) text.SelectAll();
+        }
+    }
+
+    async Task OpenWithPin(string path)
+    {
+        string pin = PinBox.Password;
+        if (!PinCode.IsValidFormat(pin))
+        {
+            Ui.Error(this, "PIN 4 rakam olmalı.");
+            return;
+        }
+        string? password = await Task.Run(() => _quick.TryPin(_settings, pin));
+        if (password is null)
+        {
+            PinBox.Clear();
+            if (_quick.IsAvailable(_settings, path))
+            {
+                Ui.Error(this, $"PIN yanlış. {_quick.AttemptsLeft} deneme hakkınız kaldı.");
+            }
+            else
+            {
+                Ui.Error(this, "PIN 3 kez yanlış girildi. Güvenliğiniz için PIN ile açma kapatıldı. Ana şifrenizi yazın.");
+                SetPinMode(false);
+            }
+            return;
+        }
+        await Finish(path, password, rememberAgain: false);
+    }
+
+    async Task OpenWithPassword(string path)
+    {
+        string password = _password.Text;
+        if (password.Length == 0)
+        {
+            Ui.Error(this, "Ana şifreyi yazın.");
+            return;
+        }
+        await Finish(path, password, rememberAgain: true);
+    }
+
+    async Task Finish(string path, string password, bool rememberAgain)
+    {
+        Announcer.Say("Kasa açılıyor, lütfen bekleyin.");
+        try
+        {
+            Vault = await Task.Run(() => Vault.Open(path, password));
+        }
+        catch (VaultException ex)
+        {
+            Ui.Error(this, ex.Message);
+            // Kasa dosyası PIN'li açılıştan sonra başka bir şifreyle değiştirilmişse ana şifre istenir.
+            if (_pinMode)
+            {
+                _quick.Forget();
+                SetPinMode(false);
+            }
+            return;
+        }
+        if (rememberAgain) _quick.Remember(path, password);
+        _password.Clear();
+        Choice = UnlockChoice.Opened;
     }
 
     void Other_Click(object sender, RoutedEventArgs e)

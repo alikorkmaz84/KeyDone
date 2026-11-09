@@ -22,7 +22,7 @@ Başka KeePass uygulamalarıyla eklenmiş özel alanlar da gösterilir ve korunu
 ### Gezinme
 
 - **Tab** ana pencerede yalnızca dört yerde durur: arama kutusu, kategoriler, kayıt listesi, alan listesi. Ana pencerede düğme yoktur ve Tab ile menü çubuğuna gidilmez.
-- **Kategoriler** bir sekme şerididir: Tümü, Giriş bilgisi, Banka kartı... Her sekme kayıt sayısını da söyler ("Banka kartı (2)"). Kategorilerdeyken **sağ ve sol ok** kategori değiştirir; **Ctrl+Tab** ve **Ctrl+Shift+Tab** her yerden sonraki ve önceki kategoriye geçer.
+- **Kategoriler** pencerenin solunda alt alta durur ve hepsi her zaman görünür: Tümü, Giriş bilgisi, Banka kartı... Her sekme kayıt sayısını da söyler ("Banka kartı (2)"). Kategorilerdeyken **ok tuşları** (sağ, sol, yukarı, aşağı) kategori değiştirir, **Home** ve **End** ilk ve son kategoriye gider; **Ctrl+Tab** ve **Ctrl+Shift+Tab** her yerden sonraki ve önceki kategoriye geçer.
 - **Ok tuşları** yalnızca listelerin ve kategorilerin içinde çalışır; hiçbir pencerede düğmeler arasında gezdirmez.
 - **F6** kayıt listesi ile alan listesi arasında geçer. Ayarlar penceresinde Ctrl+Tab sekmeler arasında geçer.
 - **Alt** ya da **F10** menü çubuğunu açar. Tüm işlemler menülerdedir: Dosya, Kayıt, Görünüm, Araçlar, Yardım.
@@ -63,6 +63,18 @@ Başka KeePass uygulamalarıyla eklenmiş özel alanlar da gösterilir ve korunu
 Kasa açılınca, kilitlenince, kopyalayınca, pano temizlenince, kaydedince, silince, hata olunca ve kasa kilitlenmek üzereyken kısa bir ses çalar. Ayarlar penceresinin Sesler sekmesinden kapatılabilir, ses düzeyi seçilebilir ve her ses dinlenebilir.
 
 Bir sesi kendi sesinizle değiştirmek için `%APPDATA%\KeyDone\Sesler` klasörüne şu adlardan biriyle bir WAV dosyası koyun: `acildi.wav`, `kilitlendi.wav`, `kopyalandi.wav`, `pano-temizlendi.wav`, `kaydedildi.wav`, `silindi.wav`, `hata.wav`, `uyari.wav`.
+
+### PIN ile hızlı açma
+
+Ayarlar > Genel sekmesinde "Kasa kilitlenince 4 haneli PIN ile açılabilsin" seçeneği açılıp bir PIN belirlenirse:
+
+- Program her açılışta ilk kez **ana şifreyle** açılır.
+- Sonra kasa kilitlenirse (hareketsizlik, Ctrl+L ya da Windows kilidi) **PIN yeterlidir**; dördüncü rakam yazılınca kasa açılır.
+- PIN **3 kez yanlış** girilirse PIN ile açma kapanır ve ana şifre istenir. Ana şifreyle açınca PIN yeniden çalışır.
+- Program kapanınca PIN ile açma sona erer.
+- 1234, 0000 gibi kolay tahmin edilen PIN'ler kabul edilmez.
+
+Nasıl korunur: Ana şifre, program açıkken bellekte Windows'un kullanıcı hesabına bağlı şifrelemesiyle (DPAPI) korunarak tutulur ve program kapanınca yok olur. PIN'in kendisi saklanmaz; ayar dosyasında yalnızca tuzlu ve yavaşlatılmış bir özeti (PBKDF2) bulunur. 4 haneli bir PIN 10.000 olasılık demektir; onu güvenli kılan 3 deneme sınırıdır.
 
 ## Güvenlik
 

@@ -99,6 +99,37 @@ public sealed class SpellerTests
     }
 }
 
+public sealed class PinCodeTests
+{
+    [Fact]
+    public void Dogru_pin_dogrulanir_yanlis_pin_reddedilir()
+    {
+        var (salt, hash) = PinCode.Create("4826");
+        Assert.True(PinCode.Verify("4826", salt, hash));
+        Assert.False(PinCode.Verify("4827", salt, hash));
+        Assert.False(PinCode.Verify("482", salt, hash));
+        Assert.False(PinCode.Verify("4826", null, hash));
+    }
+
+    [Fact]
+    public void Ayni_pin_her_seferinde_farkli_tuzla_saklanir()
+    {
+        Assert.NotEqual(PinCode.Create("4826").Hash, PinCode.Create("4826").Hash);
+    }
+
+    [Theory]
+    [InlineData("0000", true)]
+    [InlineData("1234", true)]
+    [InlineData("9876", true)]
+    [InlineData("12a4", true)]
+    [InlineData("4826", false)]
+    [InlineData("1324", false)]
+    public void Kolay_pinler_ayirt_edilir(string pin, bool simple)
+    {
+        Assert.Equal(simple, PinCode.IsTooSimple(pin));
+    }
+}
+
 public sealed class GeneratorTests
 {
     [Fact]

@@ -18,6 +18,13 @@ public sealed class AppSettings
     public bool SoundsEnabled { get; set; } = true;
     public int SoundVolume { get; set; } = 60;
 
+    /// <summary>Kilitlenince, program kapanana kadar 4 haneli PIN ile açılabilsin.</summary>
+    public bool QuickUnlockEnabled { get; set; }
+
+    /// <summary>PIN'in tuzu ve PBKDF2 özeti (PIN'in kendisi saklanmaz).</summary>
+    public string? PinSalt { get; set; }
+    public string? PinHash { get; set; }
+
     /// <summary>Varsayılandan farklı kısayollar: işlem kimliği → kısayol.</summary>
     public Dictionary<string, string> Shortcuts { get; set; } = [];
 
