@@ -33,7 +33,8 @@ public readonly record struct Shortcut(ModifierKeys Modifiers, Key Key)
         if (IsEmpty || IsModifierOnly) return "Bir tuş seçin.";
         bool functionKey = Key >= Key.F1 && Key <= Key.F24;
         if (Key == Key.F10) return "F10 menü çubuğu için ayrılmıştır.";
-        if (Key == Key.F6 || (Key == Key.Tab && Ctrl)) return "Bu tuş kayıtlar ile alanlar arasında geçmek için ayrılmıştır.";
+        if (Key == Key.F6) return "F6 kayıtlar ile alanlar arasında geçmek için ayrılmıştır.";
+        if (Key == Key.Tab && Ctrl) return "Control Tab kategoriler arasında geçmek için ayrılmıştır.";
         if (Alt && Key == Key.F4) return "Alt F4 pencereyi kapatmak için ayrılmıştır.";
         if (Alt && !Ctrl && (Key is >= Key.A and <= Key.Z or >= Key.D0 and <= Key.D9))
             return "Alt ile harf ve rakamlar menüler için ayrılmıştır. Control ile birlikte kullanın.";

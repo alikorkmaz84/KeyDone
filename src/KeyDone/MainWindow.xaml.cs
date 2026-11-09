@@ -100,9 +100,10 @@ public partial class MainWindow : Window
 
         EntryList.ItemsSource = _entries;
         FieldList.ItemsSource = _fields;
-        KindFilter.Items.Add("Tüm türler");
-        foreach (var kind in RecordKinds.All) KindFilter.Items.Add(kind);
-        KindFilter.SelectedIndex = 0;
+        // Kategori sekmeleri: Tümü ve her kayıt türü. Sekmelerin içeriği yoktur; yalnızca listeyi süzer.
+        CategoryTabs.Items.Add(new TabItem { Header = "Tümü", Tag = null });
+        foreach (var kind in RecordKinds.All) CategoryTabs.Items.Add(new TabItem { Header = kind.Label, Tag = kind });
+        CategoryTabs.SelectedIndex = 0;
         BuildMenus();
 
         _lockTimer.Tick += (_, _) => Lock("Uzun süre işlem yapılmadığı için kasa kilitlendi.");
@@ -141,6 +142,8 @@ public partial class MainWindow : Window
     const string Separator = "-";
     const string Exit = "exit";
     const string SwitchPaneItem = "switch";
+    const string NextCategoryItem = "nextCategory";
+    const string PreviousCategoryItem = "previousCategory";
 
     void BuildMenus()
     {
@@ -148,7 +151,7 @@ public partial class MainWindow : Window
         MainMenu.Items.Add(TopMenu("_Dosya", Commands.NewVault, Commands.OpenVault, Separator, Commands.LockVault, Separator, Exit));
         MainMenu.Items.Add(TopMenu("_Kayıt", Commands.NewEntry, Commands.EditEntry, Commands.DeleteEntry, Separator,
             Commands.CopyPassword, Commands.CopyUserName, Commands.Reveal, Commands.Spell, Commands.OpenUrl));
-        MainMenu.Items.Add(TopMenu("_Görünüm", Commands.Search, SwitchPaneItem));
+        MainMenu.Items.Add(TopMenu("_Görünüm", Commands.Search, Separator, NextCategoryItem, PreviousCategoryItem, Separator, SwitchPaneItem));
         MainMenu.Items.Add(TopMenu("_Araçlar", Commands.Generator, Separator, Commands.Shortcuts, Commands.Settings));
         MainMenu.Items.Add(TopMenu("_Yardım", Commands.KeyboardHelp, Commands.About));
 
@@ -187,7 +190,11 @@ public partial class MainWindow : Window
             case Exit:
                 return MenuCommand("Çı_kış", "Alt+F4", Close);
             case SwitchPaneItem:
-                return MenuCommand("Kayıtlar ile alanlar arasında _geç", "Ctrl+Tab", SwitchPane);
+                return MenuCommand("Kayıtlar ile alanlar arasında _geç", "F6", SwitchPane);
+            case NextCategoryItem:
+                return MenuCommand("_Sonraki kategori", "Ctrl+Tab", () => MoveCategory(+1));
+            case PreviousCategoryItem:
+                return MenuCommand("Ö_nceki kategori", "Ctrl+Shift+Tab", () => MoveCategory(-1));
             default:
                 return MenuCommand(Commands.Get(id).MenuText, _shortcuts.Get(id).ToString(), () => Run(id));
         }
@@ -213,9 +220,15 @@ public partial class MainWindow : Window
     {
         var pressed = Shortcut.FromEvent(e);
 
-        // Ctrl+Tab, Ctrl+Shift+Tab ve F6: kayıt listesi ile alan listesi arasında geç.
-        if ((pressed.Key == Key.Tab && pressed.Modifiers is ModifierKeys.Control or (ModifierKeys.Control | ModifierKeys.Shift))
-            || (pressed.Key == Key.F6 && pressed.Modifiers is ModifierKeys.None or ModifierKeys.Shift))
+        // Ctrl+Tab ve Ctrl+Shift+Tab: sonraki ya da önceki kategori.
+        if (pressed.Key == Key.Tab && pressed.Modifiers is ModifierKeys.Control or (ModifierKeys.Control | ModifierKeys.Shift))
+        {
+            e.Handled = true;
+            MoveCategory(pressed.Modifiers.HasFlag(ModifierKeys.Shift) ? -1 : +1);
+            return;
+        }
+        // F6 ve Shift+F6: kayıt listesi ile alan listesi arasında geç.
+        if (pressed.Key == Key.F6 && pressed.Modifiers is ModifierKeys.None or ModifierKeys.Shift)
         {
             e.Handled = true;
             SwitchPane();
@@ -311,7 +324,7 @@ public partial class MainWindow : Window
         _settings.LastVaultPath = vault.FilePath;
         _settings.Save();
         SearchBox.Clear();
-        KindFilter.SelectedIndex = 0;
+        CategoryTabs.SelectedIndex = 0;
         RefreshEntries(null);
         UpdateState();
         RestartAutoLock();
@@ -339,6 +352,7 @@ public partial class MainWindow : Window
         _current = null;
         _entries.Clear();
         _fields.Clear();
+        UpdateCategoryHeaders();
         UpdateState();
     }
 
@@ -410,7 +424,39 @@ public partial class MainWindow : Window
     {
         if (_vault is null) return;
         _all = _vault.List().OrderBy(e => e.Title, StringComparer.Create(Turkish, true)).ToList();
+        UpdateCategoryHeaders();
         ApplyFilter(selectId);
+    }
+
+    RecordKind? SelectedKind => (CategoryTabs.SelectedItem as TabItem)?.Tag as RecordKind;
+
+    /// <summary>Sekme adlarında kayıt sayısı da okunur: "Banka kartı (2)".</summary>
+    void UpdateCategoryHeaders()
+    {
+        foreach (TabItem tab in CategoryTabs.Items)
+        {
+            var kind = tab.Tag as RecordKind;
+            string label = kind?.Label ?? "Tümü";
+            tab.Header = _vault is null ? label : $"{label} ({_all.Count(e => kind is null || RecordKinds.Get(e.Kind) == kind)})";
+        }
+    }
+
+    void MoveCategory(int step)
+    {
+        if (!Ready()) return;
+        int count = CategoryTabs.Items.Count;
+        bool listHadFocus = EntryList.IsKeyboardFocusWithin;
+        CategoryTabs.SelectedIndex = ((CategoryTabs.SelectedIndex + step) % count + count) % count;
+        // Liste yenilenince odak kaybolmasın; kategori sekmesindeyse odak yeni sekmeye geçer.
+        if (listHadFocus && _entries.Count > 0) Ui.FocusSelected(EntryList);
+        else if (CategoryTabs.IsKeyboardFocusWithin) ((TabItem)CategoryTabs.SelectedItem).Focus();
+        Announcer.Say($"{((TabItem)CategoryTabs.SelectedItem).Header}. {CountText()}", queue: listHadFocus);
+    }
+
+    void CategoryTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.Source != CategoryTabs || _vault is null || !IsLoaded) return;
+        ApplyFilter();
     }
 
     static bool Matches(string text, string query) =>
@@ -420,7 +466,7 @@ public partial class MainWindow : Window
     {
         selectId ??= SelectedEntry?.Id;
         string query = SearchBox.Text.Trim();
-        var kind = KindFilter.SelectedItem as RecordKind;
+        var kind = SelectedKind;
         var visible = _all.Where(e =>
             (kind is null || RecordKinds.Get(e.Kind) == kind) &&
             (query.Length == 0 || Matches(e.Title, query) || Matches(e.UserName, query) || Matches(RecordKinds.Get(e.Kind).Label, query)));
@@ -438,8 +484,8 @@ public partial class MainWindow : Window
         int total = _all.Count, shown = _entries.Count;
         if (total == 0) return "Kasada henüz kayıt yok.";
         if (shown == total) return $"{total} kayıt.";
-        if (shown == 0) return "Aramaya uyan kayıt yok.";
-        return $"{shown} kayıt bulundu, toplam {total} kayıt.";
+        if (shown == 0) return SearchBox.Text.Trim().Length > 0 ? "Aramaya uyan kayıt yok." : "Bu kategoride kayıt yok.";
+        return $"{shown} kayıt, toplam {total} kayıt.";
     }
 
     void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -458,13 +504,6 @@ public partial class MainWindow : Window
             if (_entries.Count == 0) Announcer.Say(CountText());
             else Ui.FocusSelected(EntryList);
         }
-    }
-
-    void KindFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (_vault is null || !IsLoaded) return;
-        ApplyFilter();
-        Announcer.Say(CountText());
     }
 
     void EntryList_SelectionChanged(object sender, SelectionChangedEventArgs e) => LoadFields();
@@ -652,7 +691,8 @@ public partial class MainWindow : Window
             Mouse.OverrideCursor = Cursors.Wait;
             string id = _vault.SaveEntry(data);
             SearchBox.Clear();
-            KindFilter.SelectedIndex = 0;
+            // Kaydedilen kayıt açık kategoride görünmüyorsa "Tümü"ne geçilir.
+            if (SelectedKind is { } kind && kind.Id != data.Kind) CategoryTabs.SelectedIndex = 0;
             RefreshEntries(id);
             Ui.FocusSelected(EntryList);
             Sounds.Play(SoundEvent.Saved);
@@ -718,9 +758,11 @@ public partial class MainWindow : Window
         var lines = new List<string>
         {
             "Tab: Arama kutusu, tür, kayıt listesi ve alan listesi arasında gezer",
-            "Ctrl+Tab ya da F6: Kayıt listesi ile alan listesi arasında geçer",
-            "Ok tuşları: Listelerin içinde gezer",
-            "Alt ya da F10: Menü çubuğunu açar",
+            "Ctrl+Tab ve Ctrl+Shift+Tab: Sonraki ve önceki kategori",
+            "Sağ ve sol ok (kategorilerde): Kategori değiştirir",
+            "F6: Kayıt listesi ile alan listesi arasında geçer",
+            "Aşağı ve yukarı ok: Listelerin içinde gezer",
+            "Alt ya da F10: Menü çubuğunu açar (Tab ile menüye gidilmez)",
             "Uygulama tuşu ya da Shift+F10: Seçili kayıt veya alan için işlemler menüsünü açar",
             "Aşağı ok ya da Enter (arama kutusunda): Kayıt listesine geçer",
             "Enter (kayıt listesinde): Kaydın alanlarına geçer",

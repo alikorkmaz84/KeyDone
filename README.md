@@ -21,9 +21,10 @@ Başka KeePass uygulamalarıyla eklenmiş özel alanlar da gösterilir ve korunu
 
 ### Gezinme
 
-- **Tab** ana pencerede yalnızca dört yerde durur: arama kutusu, tür, kayıt listesi, alan listesi. Ana pencerede düğme yoktur.
-- **Ok tuşları** yalnızca listelerin ve açılır kutuların içinde çalışır; hiçbir pencerede düğmeler arasında gezdirmez.
-- **Ctrl+Tab** ya da **F6** kayıt listesi ile alan listesi arasında geçer. Ayarlar penceresinde Ctrl+Tab sekmeler arasında geçer.
+- **Tab** ana pencerede yalnızca dört yerde durur: arama kutusu, kategoriler, kayıt listesi, alan listesi. Ana pencerede düğme yoktur ve Tab ile menü çubuğuna gidilmez.
+- **Kategoriler** bir sekme şerididir: Tümü, Giriş bilgisi, Banka kartı... Her sekme kayıt sayısını da söyler ("Banka kartı (2)"). Kategorilerdeyken **sağ ve sol ok** kategori değiştirir; **Ctrl+Tab** ve **Ctrl+Shift+Tab** her yerden sonraki ve önceki kategoriye geçer.
+- **Ok tuşları** yalnızca listelerin ve kategorilerin içinde çalışır; hiçbir pencerede düğmeler arasında gezdirmez.
+- **F6** kayıt listesi ile alan listesi arasında geçer. Ayarlar penceresinde Ctrl+Tab sekmeler arasında geçer.
 - **Alt** ya da **F10** menü çubuğunu açar. Tüm işlemler menülerdedir: Dosya, Kayıt, Görünüm, Araçlar, Yardım.
 - **Uygulama tuşu** ya da **Shift+F10** seçili kayıt ya da alan için işlemler menüsünü açar.
 

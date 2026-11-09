@@ -5,13 +5,14 @@
         FontSize="15" WindowStartupLocation="CenterScreen">
     <!--
         Klavye düzeni:
-        - Menü çubuğu Alt ile açılır; tüm işlemler oradadır (sekme sırasında yer almaz).
-        - Tab yalnızca dört yerde durur: arama kutusu, tür, kayıt listesi, alan listesi.
-        - Ok tuşları yalnızca listelerin ve açılır kutunun içinde çalışır.
-        - Ctrl+Tab ya da F6 kayıt listesi ile alan listesi arasında geçer.
+        - Menü çubuğuna yalnızca Alt ya da F10 ile ulaşılır; Tab ile menüye gidilmez.
+        - Tab yalnızca dört yerde durur: arama kutusu, kategoriler, kayıt listesi, alan listesi.
+        - Kategorilerde sağ ve sol ok kategori değiştirir; Ctrl+Tab her yerden sonraki kategoriye geçer.
+        - F6 kayıt listesi ile alan listesi arasında geçer.
     -->
     <DockPanel KeyboardNavigation.DirectionalNavigation="None">
-        <Menu x:Name="MainMenu" DockPanel.Dock="Top" FontSize="15" />
+        <Menu x:Name="MainMenu" DockPanel.Dock="Top" FontSize="15"
+              KeyboardNavigation.TabNavigation="None" KeyboardNavigation.ControlTabNavigation="None" />
 
         <StatusBar DockPanel.Dock="Bottom" Focusable="False">
             <StatusBarItem>
@@ -30,27 +31,20 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Arama ve tür süzgeci -->
-            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="16" />
-                    <ColumnDefinition Width="240" />
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0">
-                    <Label Content="A_ra:" Target="{Binding ElementName=SearchBox}" Padding="0,0,0,3" />
-                    <TextBox x:Name="SearchBox" AutomationProperties.Name="Ara"
-                             AutomationProperties.HelpText="Yazdıkça kayıt listesi süzülür. Aşağı ok listeye geçer."
-                             TextChanged="SearchBox_TextChanged" PreviewKeyDown="SearchBox_PreviewKeyDown" />
-                </StackPanel>
-                <StackPanel Grid.Column="2">
-                    <Label Content="_Tür:" Target="{Binding ElementName=KindFilter}" Padding="0,0,0,3" />
-                    <ComboBox x:Name="KindFilter" AutomationProperties.Name="Tür" SelectionChanged="KindFilter_SelectionChanged" />
-                </StackPanel>
-            </Grid>
+            <!-- Arama -->
+            <StackPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
+                <Label Content="A_ra:" Target="{Binding ElementName=SearchBox}" Padding="0,0,0,3" />
+                <TextBox x:Name="SearchBox" AutomationProperties.Name="Ara"
+                         AutomationProperties.HelpText="Yazdıkça kayıt listesi süzülür. Aşağı ok listeye geçer."
+                         TextChanged="SearchBox_TextChanged" PreviewKeyDown="SearchBox_PreviewKeyDown" />
+            </StackPanel>
 
-            <!-- Kayıtlar -->
+            <!-- Kategoriler (yalnızca sekme şeridi) ve kayıtlar -->
             <DockPanel Grid.Row="1" Grid.Column="0">
+                <TabControl x:Name="CategoryTabs" DockPanel.Dock="Top" Margin="0,0,0,8" Padding="0" BorderThickness="0,1,0,0"
+                            AutomationProperties.Name="Kategoriler"
+                            AutomationProperties.HelpText="Sağ ve sol ok kategori değiştirir. Ctrl+Tab her yerden sonraki kategoriye geçer."
+                            SelectionChanged="CategoryTabs_SelectionChanged" />
                 <Label DockPanel.Dock="Top" Content="Kayıt _listesi:" Target="{Binding ElementName=EntryList}" Padding="0,0,0,3" />
                 <ListView x:Name="EntryList" AutomationProperties.Name="Kayıtlar"
                           AutomationProperties.HelpText="Enter alanlara geçer. Uygulama tuşu işlemler menüsünü açar."

@@ -58,7 +58,8 @@ public sealed class AppSettings
 /// </summary>
 public static class Announcer
 {
-    public static void Say(string message)
+    /// <param name="queue">true ise o an okunan metni kesmez, ardından okunur.</param>
+    public static void Say(string message, bool queue = false)
     {
         var app = Application.Current;
         if (app is null) return;
@@ -67,7 +68,7 @@ public static class Announcer
         var peer = UIElementAutomationPeer.FromElement(target) ?? UIElementAutomationPeer.CreatePeerForElement(target);
         peer?.RaiseNotificationEvent(
             AutomationNotificationKind.ActionCompleted,
-            AutomationNotificationProcessing.ImportantMostRecent,
+            queue ? AutomationNotificationProcessing.ImportantAll : AutomationNotificationProcessing.ImportantMostRecent,
             message,
             "KeyDone.Duyuru");
     }
