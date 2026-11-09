@@ -10,6 +10,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <AssemblyName>KeyDone</AssemblyName>
+    <Version>0.4.0</Version>
+    <Product>KeyDone</Product>
+    <Description>Erişilebilir şifre ve önemli bilgi kasası</Description>
+    <Copyright>Ali Korkmaz</Copyright>
   </PropertyGroup>
 
 </Project>

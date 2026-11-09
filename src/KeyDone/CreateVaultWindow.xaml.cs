@@ -57,7 +57,7 @@ public partial class CreateVaultWindow : Window
             FileName = "KeyDone.kdbx",
             DefaultExt = ".kdbx",
             Filter = "KeePass kasası (*.kdbx)|*.kdbx",
-            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            InitialDirectory = AppPaths.DefaultVaultFolder,
         };
         if (dialog.ShowDialog(this) != true) return;
         _path = dialog.FileName;

@@ -8,10 +8,51 @@ using System.Windows.Threading;
 
 namespace KeyDone;
 
-/// <summary>Bu bilgisayara özel ayarlar (%APPDATA%\KeyDone\settings.json). Gizli bilgi içermez.</summary>
+/// <summary>
+/// Ayar ve ses klasörü. Program klasöründe "tasinabilir.txt" varsa taşınabilir kipte çalışır:
+/// her şey program klasöründeki "Veriler" klasöründe tutulur ve USB bellekle birlikte taşınır.
+/// </summary>
+public static class AppPaths
+{
+    public const string PortableMarker = "tasinabilir.txt";
+
+    static string BaseDir => AppContext.BaseDirectory;
+
+    public static bool IsPortable { get; } = File.Exists(Path.Combine(BaseDir, PortableMarker));
+
+    public static string DataFolder => IsPortable
+        ? Path.Combine(BaseDir, "Veriler")
+        : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyDone");
+
+    /// <summary>Yeni kasanın önerilen klasörü: taşınabilir kipte program klasörü, değilse Belgeler.</summary>
+    public static string DefaultVaultFolder => IsPortable
+        ? BaseDir
+        : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+    /// <summary>Taşınabilir kipte program klasörünün içindeki yollar göreli saklanır (sürücü harfi değişebilir).</summary>
+    public static string ToStored(string path)
+    {
+        if (!IsPortable) return path;
+        string relative = Path.GetRelativePath(BaseDir, path);
+        return Path.IsPathRooted(relative) || relative.StartsWith("..", StringComparison.Ordinal) ? path : relative;
+    }
+
+    public static string? FromStored(string? stored) =>
+        stored is null || Path.IsPathRooted(stored) ? stored : Path.GetFullPath(Path.Combine(BaseDir, stored));
+}
+
+/// <summary>Bu bilgisayara (ya da taşınabilir kopyaya) özel ayarlar. Gizli bilgi içermez.</summary>
 public sealed class AppSettings
 {
+    /// <summary>Saklandığı biçim; taşınabilir kipte göreli olabilir. Okumak için <see cref="VaultPath"/>.</summary>
     public string? LastVaultPath { get; set; }
+
+    [System.Text.Json.Serialization.JsonIgnore]
+    public string? VaultPath
+    {
+        get => AppPaths.FromStored(LastVaultPath);
+        set => LastVaultPath = value is null ? null : AppPaths.ToStored(value);
+    }
     public int AutoLockMinutes { get; set; } = 5;
     public int ClipboardSeconds { get; set; } = 30;
     public bool Phonetic { get; set; }
@@ -28,8 +69,7 @@ public sealed class AppSettings
     /// <summary>Varsayılandan farklı kısayollar: işlem kimliği → kısayol.</summary>
     public Dictionary<string, string> Shortcuts { get; set; } = [];
 
-    static string FilePath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyDone", "settings.json");
+    static string FilePath => Path.Combine(AppPaths.DataFolder, "settings.json");
 
     public static AppSettings Load()
     {

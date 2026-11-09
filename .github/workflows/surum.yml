@@ -1,0 +1,43 @@
+# "v" ile başlayan bir etiket gönderilince (örnek: v0.4.0) testleri çalıştırır,
+# kurulum dosyasını ve taşınabilir sürümü üretir ve GitHub sürümüne ekler.
+name: Sürüm
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  surum:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Testler
+        run: dotnet test tests/KeyDone.Core.Tests -c Release
+
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Paketle
+        shell: pwsh
+        run: ./paketle.ps1 -Version $env:GITHUB_REF_NAME.TrimStart('v')
+
+      - name: GitHub sürümü
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          gh release create $env:GITHUB_REF_NAME artifacts/dagitim/* `
+            --title "KeyDone $version" --generate-notes

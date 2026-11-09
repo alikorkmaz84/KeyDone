@@ -8,3 +8,6 @@ TestResults/
 # Kasa dosyaları asla depoya girmesin
 *.kdbx
 *.kdbx.tmp
+
+# Paketleme çıktıları
+artifacts/

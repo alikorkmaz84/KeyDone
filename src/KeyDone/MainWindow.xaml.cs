@@ -128,7 +128,7 @@ public partial class MainWindow : Window
             Announcer.Say("Pano temizlendi.");
         };
 
-        Loaded += (_, _) => Dispatcher.BeginInvoke(() => ShowUnlockFlow(_settings.LastVaultPath), DispatcherPriority.ApplicationIdle);
+        Loaded += (_, _) => Dispatcher.BeginInvoke(() => ShowUnlockFlow(_settings.VaultPath), DispatcherPriority.ApplicationIdle);
         Closed += (_, _) =>
         {
             SystemEvents.SessionSwitch -= OnSessionSwitch;
@@ -323,7 +323,7 @@ public partial class MainWindow : Window
     {
         CloseVault();
         _vault = vault;
-        _settings.LastVaultPath = vault.FilePath;
+        _settings.VaultPath = vault.FilePath;
         _settings.Save();
         SearchBox.Clear();
         CategoryTabs.SelectedIndex = 0;
@@ -366,7 +366,7 @@ public partial class MainWindow : Window
         if (!_settings.QuickUnlockEnabled || _settings.PinHash is null) _quick.Forget();
         Sounds.Play(SoundEvent.Locked);
         Announcer.Say(message);
-        Dispatcher.BeginInvoke(() => ShowUnlockFlow(_settings.LastVaultPath), DispatcherPriority.ApplicationIdle);
+        Dispatcher.BeginInvoke(() => ShowUnlockFlow(_settings.VaultPath), DispatcherPriority.ApplicationIdle);
     }
 
     void RestartAutoLock()
@@ -644,12 +644,17 @@ public partial class MainWindow : Window
     void RevealField()
     {
         if (!ReadyWithEntry()) return;
-        var field = FieldList.SelectedItem as FieldItem;
+        // Alan listesindeyken seçili alan; başka yerdeyken (Ctrl+C ve Ctrl+H gibi) kaydın ana gizli alanı:
+        // şifre, kart numarası, T.C. kimlik numarası...
+        var field = ActiveField ?? _fields.FirstOrDefault(f => f.Key == RecordKinds.Get(_current!.Kind).PrimaryKey)
+                                ?? _fields.FirstOrDefault(f => f.IsProtected);
         if (field is null)
         {
-            Announcer.Say("Bu kayıtta gösterilecek alan yok.");
+            Announcer.Say("Bu kayıtta gizli alan yok.");
             return;
         }
+        FieldList.SelectedItem = field;
+        FieldList.ScrollIntoView(field);
         if (!field.IsProtected)
         {
             Announcer.Say(field.Spoken);
@@ -812,9 +817,15 @@ public partial class MainWindow : Window
         new ListWindow("Klavye kullanımı", "Klavye kullanımı:", lines) { Owner = this }.ShowDialog();
     }
 
-    void ShowAbout() =>
+    void ShowAbout()
+    {
+        var v = typeof(MainWindow).Assembly.GetName().Version;
+        string version = v is null ? "" : $" {v.Major}.{v.Minor}.{v.Build}";
+        string mode = AppPaths.IsPortable ? " (taşınabilir sürüm)" : "";
         MessageBox.Show(this,
-            "KeyDone 0.3\n\nEkran okuyucu kullanıcıları için tasarlanmış şifre ve önemli bilgi kasası.\n" +
-            "Kasa dosyası KeePass (KDBX 4) biçimindedir; KeePassXC, KeePassDX ve Strongbox ile de açılabilir.",
+            $"KeyDone{version}{mode}\n\nEkran okuyucu kullanıcıları için tasarlanmış şifre ve önemli bilgi kasası.\n" +
+            "Kasa dosyası KeePass (KDBX 4) biçimindedir; KeePassXC, KeePassDX ve Strongbox ile de açılabilir.\n\n" +
+            "Lisans: GPL-3.0-or-later.",
             "KeyDone hakkında", MessageBoxButton.OK, MessageBoxImage.None);
+    }
 }

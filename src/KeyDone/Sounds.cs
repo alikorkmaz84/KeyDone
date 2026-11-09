@@ -30,8 +30,7 @@ public static class Sounds
     /// <summary>0 ile 100 arası.</summary>
     public static int Volume { get; set; } = 60;
 
-    public static string Folder => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyDone", "Sesler");
+    public static string Folder => Path.Combine(AppPaths.DataFolder, "Sesler");
 
     public static string? CustomFile(SoundEvent e)
     {

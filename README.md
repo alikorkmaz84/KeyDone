@@ -7,7 +7,16 @@ Ekran okuyucu kullanıcıları için baştan tasarlanmış, tamamen erişilebili
 - Her şey bilgisayarda kalır; uygulama internete hiçbir veri göndermez.
 - Şifreleme: Argon2id (64 MiB) ile anahtar türetme, AES-256 ile kasa şifreleme.
 
-## Çalıştırma
+## İndirme
+
+[Sürümler sayfasından](https://github.com/alikorkmaz84/KeyDone/releases/latest) iki biçimden birini indirin. İkisi de .NET'i içinde taşır; başka bir şey kurmanız gerekmez.
+
+- **KeyDone-<sürüm>-Kurulum.exe:** Bilgisayara kurar. Yönetici izni istemez, Başlat menüsüne kısayol ekler; isterseniz masaüstüne de. Ayarlar Windows kullanıcı klasöründe tutulur. Denetim Masası'ndaki Programlar listesinden kaldırılabilir.
+- **KeyDone-<sürüm>-Tasinabilir.zip:** Kurulum gerektirmez. ZIP'i istediğiniz yere (örneğin USB belleğe) çıkarın ve `KeyDone.exe`'yi çalıştırın. Ayarlar ve sesler klasörün içindeki `Veriler` klasöründe tutulur. Kasanızı da bu klasöre kaydederseniz sürücü harfi değişse bile KeyDone onu bulur.
+
+Güncelleme otomatik değildir. Yeni sürümü aynı sayfadan indirip kurabilir ya da taşınabilir klasörün üzerine çıkarabilirsiniz; ayarlarınız ve kasanız korunur.
+
+## Kaynaktan çalıştırma
 
 `KeyDone.bat` dosyasına çift tıklayın. İlk açılış bir iki dakika sürebilir, sonrakiler birkaç saniye sürer.
 Gereken tek şey [.NET 10 SDK](https://dotnet.microsoft.com/download)'dır.
@@ -93,8 +102,28 @@ dotnet test
 - `src/KeyDone.Core`: Kasa (KeePassLib), kayıt türleri, şifre üretici, harf harf okuma.
 - `src/KeyDone`: WPF arayüzü.
 - `tests/KeyDone.Core.Tests`: Testler.
+- `installer/KeyDone.iss`: Kurulum dosyası betiği (Inno Setup 6).
 
-KDBX dosyaları, KeePass'in kendi kütüphanesi KeePassLib ile okunup yazılır (KeePassLib.Standard paketi). KeePassLib GPL-2.0 lisanslıdır; bu yüzden KeyDone dağıtılırsa kaynak kodu da GPL ile açık olmalıdır.
+### Paketleme ve sürüm
+
+Kurulum dosyasını ve taşınabilir ZIP'i yerelde üretmek için ([Inno Setup 6](https://jrsoftware.org/isdl.php) gerekir):
+
+```bash
+powershell -ExecutionPolicy Bypass -File paketle.ps1
+```
+
+Çıktılar `artifacts\dagitim` klasörüne yazılır. Sürüm numarası `src/KeyDone/KeyDone.csproj` içindeki `Version`'dan alınır.
+
+Yeni bir sürüm yayınlamak için sürüm numarasını güncelleyip etiket gönderin; GitHub Actions testleri çalıştırır, iki dosyayı üretir ve sürüm sayfasına ekler:
+
+```bash
+git tag v0.4.0
+git push origin v0.4.0
+```
+
+## Lisans
+
+GPL-3.0-or-later. KDBX dosyaları, KeePass'in kendi kütüphanesi KeePassLib ile okunup yazılır (KeePassLib.Standard paketi, GPL-2.0-or-later).
 
 ## Yol haritası
 
