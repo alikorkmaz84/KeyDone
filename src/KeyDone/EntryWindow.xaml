@@ -4,7 +4,7 @@
         Title="Kayıt – KeyDone" Width="640" Height="640" MinWidth="420" MinHeight="360"
         FontSize="15" WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
     <!-- Sekme sırası: tür, alanlar, sonra düğmeler. -->
-    <Grid Margin="16">
+    <Grid Margin="16" KeyboardNavigation.DirectionalNavigation="None">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />

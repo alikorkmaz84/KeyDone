@@ -15,6 +15,11 @@ public sealed class AppSettings
     public int AutoLockMinutes { get; set; } = 5;
     public int ClipboardSeconds { get; set; } = 30;
     public bool Phonetic { get; set; }
+    public bool SoundsEnabled { get; set; } = true;
+    public int SoundVolume { get; set; } = 60;
+
+    /// <summary>Varsayılandan farklı kısayollar: işlem kimliği → kısayol.</summary>
+    public Dictionary<string, string> Shortcuts { get; set; } = [];
 
     static string FilePath => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "KeyDone", "settings.json");
@@ -156,8 +161,12 @@ public static class Ui
             list.Focus();
     }
 
-    public static void Error(Window owner, string message) =>
-        MessageBox.Show(owner, message, "KeyDone", MessageBoxButton.OK, MessageBoxImage.Warning);
+    public static void Error(Window owner, string message)
+    {
+        // Windows'un uyarı sesi yerine KeyDone'un hata sesi çalar (sesler kapalıysa sessiz).
+        Sounds.Play(SoundEvent.Error);
+        MessageBox.Show(owner, message, "KeyDone", MessageBoxButton.OK, MessageBoxImage.None);
+    }
 
     public static bool Confirm(Window owner, string message, string title) =>
         MessageBox.Show(owner, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No)

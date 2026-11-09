@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Şifre üretici – KeyDone" Width="600" SizeToContent="Height"
         FontSize="15" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
-    <StackPanel Margin="16">
+    <StackPanel Margin="16" KeyboardNavigation.DirectionalNavigation="None">
         <Label Content="Üretilen _şifre:" Target="{Binding ElementName=OutputBox}" Padding="0,0,0,3" />
         <TextBox x:Name="OutputBox" IsReadOnly="True" IsReadOnlyCaretVisible="True" FontFamily="Consolas"
                  AutomationProperties.Name="Üretilen şifre" />

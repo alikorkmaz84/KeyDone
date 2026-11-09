@@ -3,14 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Width="520" Height="520" MinWidth="320" MinHeight="260"
         FontSize="15" WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
-    <Grid Margin="16">
+    <Grid Margin="16" KeyboardNavigation.DirectionalNavigation="None">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Label x:Name="CaptionLabel" Grid.Row="0" Target="{Binding ElementName=Items}" Padding="0,0,0,3" />
-        <ListBox x:Name="Items" Grid.Row="1" ItemContainerStyle="{StaticResource SpokenItem}" />
+        <ListBox x:Name="Items" Grid.Row="1" ItemContainerStyle="{StaticResource SpokenText}" />
         <WrapPanel Grid.Row="2" Margin="0,12,0,0">
             <Button Content="_Kapat" IsCancel="True" />
         </WrapPanel>

@@ -19,14 +19,22 @@ Başka KeePass uygulamalarıyla eklenmiş özel alanlar da gösterilir ve korunu
 
 ## Kullanım
 
-Ana pencerede solda **kayıt listesi**, sağda seçili kaydın **alanları** vardır.
+### Gezinme
 
-- Kayıt listesinde oklarla gezin. **Enter** kaydın alanlarına geçer, alanlarda **Escape** listeye döner.
-- Alan listesinde **Enter** seçili alanı kopyalar. Gizli alanlar "Şifre: gizli" diye okunur; **Göster** düğmesi değeri gösterir ve okur.
-- **Harf harf oku** şifreyi "küçük a, büyük B, rakam 1, ünlem" biçiminde bir listede gösterir; oklarla karakter karakter gezilir. Ayarlardan "A, Adana" gibi kod kelimeleri de açılabilir.
-- Her işlem ekran okuyucuya sesli bildirilir ("Şifre kopyalandı, 30 saniye sonra panodan silinecek" gibi).
+- **Tab** ana pencerede yalnızca dört yerde durur: arama kutusu, tür, kayıt listesi, alan listesi. Ana pencerede düğme yoktur.
+- **Ok tuşları** yalnızca listelerin ve açılır kutuların içinde çalışır; hiçbir pencerede düğmeler arasında gezdirmez.
+- **Ctrl+Tab** ya da **F6** kayıt listesi ile alan listesi arasında geçer. Ayarlar penceresinde Ctrl+Tab sekmeler arasında geçer.
+- **Alt** ya da **F10** menü çubuğunu açar. Tüm işlemler menülerdedir: Dosya, Kayıt, Görünüm, Araçlar, Yardım.
+- **Uygulama tuşu** ya da **Shift+F10** seçili kayıt ya da alan için işlemler menüsünü açar.
 
-### Klavye kısayolları (F1 bu listeyi açar)
+### Listeler
+
+- Kayıt listesinin sütunları: Kayıt adı, Tür, Kullanıcı adı. Ekran okuyucu satırı "E-posta, Giriş bilgisi, ornek@posta.com" diye okur.
+- Kayıt listesinde **Enter** alanlara geçer. Alan listesinde **Enter** seçili alanı kopyalar, **Escape** kayıt listesine döner.
+- Gizli alanlar "Şifre: gizli" diye okunur; **Ctrl+R** değeri gösterir ve okur.
+- **Ctrl+H** şifreyi "küçük a, büyük B, rakam 1, ünlem" biçiminde bir listede gösterir; oklarla karakter karakter gezilir.
+
+### Varsayılan kısayollar (F1 güncel listeyi açar)
 
 | Tuş | İşlem |
 | --- | --- |
@@ -36,13 +44,24 @@ Ana pencerede solda **kayıt listesi**, sağda seçili kaydın **alanları** var
 | Delete | Seçili kaydı sil (onay istenir) |
 | Ctrl+C | Şifreyi ya da seçili alanı kopyala |
 | Ctrl+B | Kullanıcı adını kopyala |
+| Ctrl+R | Seçili alanı göster ya da gizle |
 | Ctrl+H | Şifreyi ya da seçili alanı harf harf oku |
 | Ctrl+U | Web sitesini aç |
 | Ctrl+G | Şifre üretici |
 | Ctrl+L | Kasayı kilitle |
 | Ctrl+O | Başka bir kasa aç |
 | Ctrl+Shift+N | Yeni kasa oluştur |
+| Ctrl+Shift+K | Kısayolları özelleştir |
+| F9 | Ayarlar |
 | Ctrl+S | Kayıt penceresinde kaydet |
+
+**Kısayolları değiştirmek için:** Araçlar menüsünden Kısayolları özelleştir (Ctrl+Shift+K). Listede işlemi seçip Enter'a basın, yeni tuşlara basın, Enter ile onaylayın. Delete kısayolu kaldırır. Başka bir işlemde kullanılan bir kısayol seçilirse sorulur.
+
+### Sesler
+
+Kasa açılınca, kilitlenince, kopyalayınca, pano temizlenince, kaydedince, silince, hata olunca ve kasa kilitlenmek üzereyken kısa bir ses çalar. Ayarlar penceresinin Sesler sekmesinden kapatılabilir, ses düzeyi seçilebilir ve her ses dinlenebilir.
+
+Bir sesi kendi sesinizle değiştirmek için `%APPDATA%\KeyDone\Sesler` klasörüne şu adlardan biriyle bir WAV dosyası koyun: `acildi.wav`, `kilitlendi.wav`, `kopyalandi.wav`, `pano-temizlendi.wav`, `kaydedildi.wav`, `silindi.wav`, `hata.wav`, `uyari.wav`.
 
 ## Güvenlik
 

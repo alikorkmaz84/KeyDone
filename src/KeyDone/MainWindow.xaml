@@ -3,36 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="KeyDone" Width="1000" Height="700" MinWidth="560" MinHeight="420"
         FontSize="15" WindowStartupLocation="CenterScreen">
-    <DockPanel>
-        <Menu DockPanel.Dock="Top" FontSize="15">
-            <MenuItem Header="_Dosya">
-                <MenuItem Header="_Yeni kasa oluştur..." InputGestureText="Ctrl+Shift+N" Click="NewVault_Click" />
-                <MenuItem Header="Kasa _aç..." InputGestureText="Ctrl+O" Click="OpenVault_Click" />
-                <MenuItem x:Name="MenuLock" Header="_Kilitle" InputGestureText="Ctrl+L" Click="Lock_Click" />
-                <Separator />
-                <MenuItem Header="Çı_kış" InputGestureText="Alt+F4" Click="Exit_Click" />
-            </MenuItem>
-            <MenuItem x:Name="MenuEntry" Header="_Kayıt">
-                <MenuItem Header="_Yeni kayıt..." InputGestureText="Ctrl+N" Click="NewEntry_Click" />
-                <MenuItem Header="_Düzenle..." InputGestureText="Ctrl+E" Click="EditEntry_Click" />
-                <MenuItem Header="_Sil..." InputGestureText="Delete" Click="DeleteEntry_Click" />
-                <Separator />
-                <MenuItem Header="Ş_ifreyi kopyala" InputGestureText="Ctrl+C" Click="CopyPrimary_Click" />
-                <MenuItem Header="_Kullanıcı adını kopyala" InputGestureText="Ctrl+B" Click="CopyUserName_Click" />
-                <MenuItem Header="Şifreyi _harf harf oku" InputGestureText="Ctrl+H" Click="SpellPrimary_Click" />
-                <MenuItem Header="_Web sitesini aç" InputGestureText="Ctrl+U" Click="OpenUrl_Click" />
-            </MenuItem>
-            <MenuItem Header="Araç_lar">
-                <MenuItem Header="Şifre _üretici..." InputGestureText="Ctrl+G" Click="Generator_Click" />
-                <MenuItem Header="_Ayarlar..." Click="Settings_Click" />
-            </MenuItem>
-            <MenuItem Header="_Yardım">
-                <MenuItem Header="_Klavye kısayolları" InputGestureText="F1" Click="Shortcuts_Click" />
-                <MenuItem Header="KeyDone _hakkında" Click="About_Click" />
-            </MenuItem>
-        </Menu>
+    <!--
+        Klavye düzeni:
+        - Menü çubuğu Alt ile açılır; tüm işlemler oradadır (sekme sırasında yer almaz).
+        - Tab yalnızca dört yerde durur: arama kutusu, tür, kayıt listesi, alan listesi.
+        - Ok tuşları yalnızca listelerin ve açılır kutunun içinde çalışır.
+        - Ctrl+Tab ya da F6 kayıt listesi ile alan listesi arasında geçer.
+    -->
+    <DockPanel KeyboardNavigation.DirectionalNavigation="None">
+        <Menu x:Name="MainMenu" DockPanel.Dock="Top" FontSize="15" />
 
-        <StatusBar DockPanel.Dock="Bottom">
+        <StatusBar DockPanel.Dock="Bottom" Focusable="False">
             <StatusBarItem>
                 <TextBlock x:Name="StatusText" Text="Kasa kilitli." />
             </StatusBarItem>
@@ -40,57 +21,67 @@
 
         <Grid Margin="12">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-            <!-- Sol: arama ve kayıt listesi -->
-            <DockPanel Grid.Column="0">
-                <StackPanel DockPanel.Dock="Top">
-                    <Label Content="A_ra:" Target="{Binding ElementName=SearchBox}" />
+            <!-- Arama ve tür süzgeci -->
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="240" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <Label Content="A_ra:" Target="{Binding ElementName=SearchBox}" Padding="0,0,0,3" />
                     <TextBox x:Name="SearchBox" AutomationProperties.Name="Ara"
-                             AutomationProperties.HelpText="Yazdıkça liste süzülür. Aşağı ok veya Enter listeye geçer."
+                             AutomationProperties.HelpText="Yazdıkça kayıt listesi süzülür. Aşağı ok listeye geçer."
                              TextChanged="SearchBox_TextChanged" PreviewKeyDown="SearchBox_PreviewKeyDown" />
-                    <Label Content="_Tür:" Target="{Binding ElementName=KindFilter}" />
-                    <ComboBox x:Name="KindFilter" AutomationProperties.Name="Tür" SelectionChanged="KindFilter_SelectionChanged" />
-                    <Label Content="Kayıt list_esi:" Target="{Binding ElementName=EntryList}" />
                 </StackPanel>
-                <ListBox x:Name="EntryList" AutomationProperties.Name="Kayıt listesi"
-                         AutomationProperties.HelpText="Enter kaydın alanlarına geçer. Ctrl+C şifreyi, Ctrl+B kullanıcı adını kopyalar."
-                         SelectionChanged="EntryList_SelectionChanged" PreviewKeyDown="EntryList_PreviewKeyDown"
-                         MouseDoubleClick="EntryList_MouseDoubleClick"
-                         ItemContainerStyle="{StaticResource SpokenItem}" />
+                <StackPanel Grid.Column="2">
+                    <Label Content="_Tür:" Target="{Binding ElementName=KindFilter}" Padding="0,0,0,3" />
+                    <ComboBox x:Name="KindFilter" AutomationProperties.Name="Tür" SelectionChanged="KindFilter_SelectionChanged" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Kayıtlar -->
+            <DockPanel Grid.Row="1" Grid.Column="0">
+                <Label DockPanel.Dock="Top" Content="Kayıt _listesi:" Target="{Binding ElementName=EntryList}" Padding="0,0,0,3" />
+                <ListView x:Name="EntryList" AutomationProperties.Name="Kayıtlar"
+                          AutomationProperties.HelpText="Enter alanlara geçer. Uygulama tuşu işlemler menüsünü açar."
+                          SelectionMode="Single" ItemContainerStyle="{StaticResource SpokenItem}"
+                          SelectionChanged="EntryList_SelectionChanged" PreviewKeyDown="EntryList_PreviewKeyDown"
+                          MouseDoubleClick="EntryList_MouseDoubleClick">
+                    <ListView.View>
+                        <GridView AllowsColumnReorder="False">
+                            <GridViewColumn Header="Kayıt adı" Width="230" DisplayMemberBinding="{Binding Title}" />
+                            <GridViewColumn Header="Tür" Width="140" DisplayMemberBinding="{Binding KindLabel}" />
+                            <GridViewColumn Header="Kullanıcı adı" Width="220" DisplayMemberBinding="{Binding UserName}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
             </DockPanel>
 
-            <!-- Sağ: seçili kaydın alanları -->
-            <!-- Sekme sırası: alan listesi, sonra düğmeler. -->
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <Label x:Name="FieldsLabel" Grid.Row="0" Content="Ala_nlar:" Target="{Binding ElementName=FieldList}" />
-                <ListBox x:Name="FieldList" Grid.Row="1" AutomationProperties.Name="Alanlar"
-                         AutomationProperties.HelpText="Enter seçili alanı kopyalar. Escape kayıt listesine döner."
-                         PreviewKeyDown="FieldList_PreviewKeyDown" SelectionChanged="FieldList_SelectionChanged"
-                         ItemContainerStyle="{StaticResource SpokenItem}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding}" TextWrapping="Wrap" />
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-                <WrapPanel Grid.Row="2" Margin="0,10,0,0">
-                    <Button Content="K_opyala" Click="CopyField_Click" AutomationProperties.HelpText="Seçili alanı panoya kopyalar" />
-                    <Button x:Name="RevealButton" Content="_Göster" Click="Reveal_Click" AutomationProperties.HelpText="Seçili gizli alanı gösterir veya gizler" />
-                    <Button Content="_Harf harf oku" Click="SpellField_Click" AutomationProperties.HelpText="Seçili alanı karakter karakter okur" />
-                    <Button Content="_Siteyi aç" Click="OpenUrl_Click" />
-                    <Button Content="Dü_zenle" Click="EditEntry_Click" />
-                    <Button Content="S_il" Click="DeleteEntry_Click" />
-                </WrapPanel>
-            </Grid>
+            <!-- Seçili kaydın alanları -->
+            <DockPanel Grid.Row="1" Grid.Column="2">
+                <Label x:Name="FieldsLabel" DockPanel.Dock="Top" Content="Ala_nlar:" Target="{Binding ElementName=FieldList}" Padding="0,0,0,3" />
+                <ListView x:Name="FieldList" AutomationProperties.Name="Alanlar"
+                          AutomationProperties.HelpText="Enter seçili alanı kopyalar. Escape kayıt listesine döner."
+                          SelectionMode="Single" ItemContainerStyle="{StaticResource SpokenItem}"
+                          PreviewKeyDown="FieldList_PreviewKeyDown">
+                    <ListView.View>
+                        <GridView AllowsColumnReorder="False">
+                            <GridViewColumn Header="Alan" Width="170" DisplayMemberBinding="{Binding Label}" />
+                            <GridViewColumn Header="Değer" Width="220" DisplayMemberBinding="{Binding Display}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </DockPanel>
         </Grid>
     </DockPanel>
 </Window>

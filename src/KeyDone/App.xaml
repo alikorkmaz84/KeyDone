@@ -26,8 +26,13 @@
         <Style TargetType="CheckBox">
             <Setter Property="Margin" Value="0,8,0,0" />
         </Style>
-        <!-- Liste öğesinin ekran okuyucudaki adı, öğenin metnidir (ToString). -->
-        <Style x:Key="SpokenItem" TargetType="ListBoxItem">
+        <!-- Liste öğesinin ekran okuyucudaki adı: sütunların okunacak hali (Spoken). -->
+        <Style x:Key="SpokenItem" TargetType="ListViewItem">
+            <Setter Property="AutomationProperties.Name" Value="{Binding Spoken, Mode=OneWay}" />
+            <Setter Property="Padding" Value="4,3" />
+        </Style>
+        <!-- Düz metin listeleri için: öğenin adı metnin kendisidir. -->
+        <Style x:Key="SpokenText" TargetType="ListBoxItem">
             <Setter Property="AutomationProperties.Name" Value="{Binding Mode=OneWay}" />
             <Setter Property="Padding" Value="6,4" />
         </Style>
