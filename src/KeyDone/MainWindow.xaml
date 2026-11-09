@@ -1,6 +1,7 @@
 ﻿<Window x:Class="KeyDone.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:KeyDone"
         Title="KeyDone" Width="1150" Height="720" MinWidth="720" MinHeight="460"
         FontSize="15" WindowStartupLocation="CenterScreen">
     <!--
@@ -54,35 +55,70 @@
             <!-- Kayıtlar -->
             <DockPanel Grid.Row="1" Grid.Column="2">
                 <Label DockPanel.Dock="Top" Content="Kayıt _listesi:" Target="{Binding ElementName=EntryList}" Padding="0,0,0,3" />
-                <ListView x:Name="EntryList" AutomationProperties.Name="Kayıtlar"
-                          AutomationProperties.HelpText="Enter alanlara geçer. Uygulama tuşu işlemler menüsünü açar."
-                          SelectionMode="Single" ItemContainerStyle="{StaticResource SpokenItem}"
-                          SelectionChanged="EntryList_SelectionChanged" PreviewKeyDown="EntryList_PreviewKeyDown"
-                          MouseDoubleClick="EntryList_MouseDoubleClick">
-                    <ListView.View>
-                        <GridView AllowsColumnReorder="False">
-                            <GridViewColumn Header="Kayıt adı" Width="230" DisplayMemberBinding="{Binding Title}" />
-                            <GridViewColumn Header="Tür" Width="140" DisplayMemberBinding="{Binding KindLabel}" />
-                            <GridViewColumn Header="Kullanıcı adı" Width="220" DisplayMemberBinding="{Binding UserName}" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                <!--
+                    Düz liste: ekran okuyucu öğeleri "satır" değil liste öğesi olarak okur.
+                    Sütunlar yalnızca görseldir; başlık satırı ekran okuyucudan gizlidir.
+                -->
+                <Grid DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="230" />
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <local:VisualOnlyText Grid.Column="0" Text="Kayıt adı" />
+                    <local:VisualOnlyText Grid.Column="1" Text="Tür" />
+                    <local:VisualOnlyText Grid.Column="2" Text="Kullanıcı adı" />
+                </Grid>
+                <ListBox x:Name="EntryList" AutomationProperties.Name="Kayıtlar"
+                         AutomationProperties.HelpText="Enter alanlara geçer. Uygulama tuşu işlemler menüsünü açar."
+                         SelectionMode="Single" ItemContainerStyle="{StaticResource SpokenItem}"
+                         SelectionChanged="EntryList_SelectionChanged" PreviewKeyDown="EntryList_PreviewKeyDown"
+                         MouseDoubleClick="EntryList_MouseDoubleClick">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="230" />
+                                    <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Grid.Column="1" Text="{Binding KindLabel}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Grid.Column="2" Text="{Binding UserName}" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </DockPanel>
 
             <!-- Seçili kaydın alanları -->
             <DockPanel Grid.Row="1" Grid.Column="4">
                 <Label x:Name="FieldsLabel" DockPanel.Dock="Top" Content="Ala_nlar:" Target="{Binding ElementName=FieldList}" Padding="0,0,0,3" />
-                <ListView x:Name="FieldList" AutomationProperties.Name="Alanlar"
-                          AutomationProperties.HelpText="Enter seçili alanı kopyalar. Escape kayıt listesine döner."
-                          SelectionMode="Single" ItemContainerStyle="{StaticResource SpokenItem}"
-                          PreviewKeyDown="FieldList_PreviewKeyDown">
-                    <ListView.View>
-                        <GridView AllowsColumnReorder="False">
-                            <GridViewColumn Header="Alan" Width="170" DisplayMemberBinding="{Binding Label}" />
-                            <GridViewColumn Header="Değer" Width="220" DisplayMemberBinding="{Binding Display}" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
+                <Grid DockPanel.Dock="Top" Style="{StaticResource ColumnHeader}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="170" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <local:VisualOnlyText Grid.Column="0" Text="Alan" />
+                    <local:VisualOnlyText Grid.Column="1" Text="Değer" />
+                </Grid>
+                <ListBox x:Name="FieldList" AutomationProperties.Name="Alanlar"
+                         AutomationProperties.HelpText="Enter seçili alanı kopyalar. Escape kayıt listesine döner."
+                         SelectionMode="Single" ItemContainerStyle="{StaticResource SpokenItem}"
+                         PreviewKeyDown="FieldList_PreviewKeyDown">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="170" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Grid.Column="1" Text="{Binding Display}" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
             </DockPanel>
         </Grid>
     </DockPanel>

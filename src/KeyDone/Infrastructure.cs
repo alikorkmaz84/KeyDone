@@ -150,6 +150,15 @@ public static class SecureClipboard
     }
 }
 
+/// <summary>
+/// Yalnızca görsel metin (liste sütun başlıkları gibi). Ekran okuyucuya hiç gösterilmez;
+/// aynı bilgi liste öğelerinin adında zaten okunur.
+/// </summary>
+public sealed class VisualOnlyText : TextBlock
+{
+    protected override AutomationPeer? OnCreateAutomationPeer() => null;
+}
+
 public static class Ui
 {
     /// <summary>Listede seçili öğeye (yoksa ilk öğeye) odaklanır; ekran okuyucu öğeyi okur.</summary>
